@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:io';
 
+import 'package:exif/exif.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -17,29 +19,35 @@ class MainScreen extends StatefulWidget {
   State<StatefulWidget> createState() => MainScreen_();
 }
 
-typedef OnPickImageCallback = void Function(
-    double? maxWidth, double? maxHeight, int? quality);
-
 class MainScreen_ extends State<MainScreen> {
-  List<XFile>? _imageFileList;
-
-  void _setImageFileListFromFile(XFile? value) {
-    _imageFileList = value == null ? null : <XFile>[value];
-  }
-
   final ImagePicker _picker = ImagePicker();
+  File? imageFile;
   dynamic _pickImageError;
 
   Future<void> _onImageButtonPressed(ImageSource source) async {
     try {
       final XFile? pickedFile = await _picker.pickImage(source: source);
-      setState(() {
-        _setImageFileListFromFile(pickedFile);
-      });
+      if (pickedFile != null) {
+        setState(() {
+          imageFile = File(pickedFile.path);
+        });
+      }
     } catch (e) {
       setState(() {
         _pickImageError = e;
       });
+    }
+
+    if (imageFile != null) {
+      final data = await readExifFromBytes(imageFile!.readAsBytesSync());
+      if (data.isEmpty) {
+        print("No EXIF information found");
+        return;
+      }
+      // GPS value should be in this.
+      for (final entry in data.entries) {
+        print("${entry.key}: ${entry.value}");
+      }
     }
   }
 
@@ -49,6 +57,7 @@ class MainScreen_ extends State<MainScreen> {
         appBar: AppBar(
           title: const Text('AIR POLLUTION SMTH'),
         ),
+        body: imageFile != null ? Image.file(imageFile!) : Container(),
         floatingActionButton: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: <Widget>[
@@ -65,7 +74,8 @@ class MainScreen_ extends State<MainScreen> {
               child: FloatingActionButton(
                   onPressed: () {
                     _onImageButtonPressed(ImageSource.camera);
-                  }, child: const Icon(Icons.camera_alt)),
+                  },
+                  child: const Icon(Icons.camera_alt)),
             )
           ],
         ));
