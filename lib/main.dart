@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:exif/exif.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 
 Future<void> main() async {
@@ -23,6 +24,11 @@ class MainScreen_ extends State<MainScreen> {
   final ImagePicker _picker = ImagePicker();
   File? imageFile;
   dynamic _pickImageError;
+
+  // get current location from GPS
+  String locationMsg = 'Current Location of the user';
+  late String lat;
+  late String long;
 
   Future<void> _onImageButtonPressed(ImageSource source) async {
     try {
@@ -51,19 +57,70 @@ class MainScreen_ extends State<MainScreen> {
     }
   }
 
+  // get current location using Geolocator
+  Future<Position> _getCurrentLocation() async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      return Future.error('Location services are disabled.');
+    }
+
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        return Future.error('Location permissions are denied');
+      }
+    }
+    if (permission == LocationPermission.deniedForever) {
+      return Future.error(
+          'Location permissions are permanently denied, we cannot request location');
+    }
+    return await Geolocator.getCurrentPosition();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: const Text('AIR POLLUTION SMTH'),
+          title: const Text('APA Photo Sharing'),
         ),
-        body: imageFile != null ? Image.file(imageFile!) : Container(),
-        floatingActionButton: Row(
+        body: imageFile != null
+            ? Image.file(imageFile!)
+            : Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Text(
+                      locationMsg,
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+        floatingActionButton: Column(
           mainAxisAlignment: MainAxisAlignment.end,
           children: <Widget>[
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: FloatingActionButton(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                  onPressed: () {
+                    _getCurrentLocation().then((value) {
+                      lat = '${value.latitude}';
+                      long = '${value.longitude}';
+                      setState(() {
+                        locationMsg = 'Latitude: $lat, Longitude: $long';
+                      });
+                    });
+                  },
+                  child: const Icon(Icons.gps_fixed)),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: FloatingActionButton(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
                   onPressed: () {
                     _onImageButtonPressed(ImageSource.gallery);
                   },
@@ -72,11 +129,13 @@ class MainScreen_ extends State<MainScreen> {
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: FloatingActionButton(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
                   onPressed: () {
                     _onImageButtonPressed(ImageSource.camera);
                   },
                   child: const Icon(Icons.camera_alt)),
-            )
+            ),
           ],
         ));
   }
