@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:app/EditPhoto/PhotoEditor.dart';
 import 'package:exif/exif.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
@@ -22,7 +23,7 @@ class MainScreen extends StatefulWidget {
 
 class MainScreen_ extends State<MainScreen> {
   final ImagePicker _picker = ImagePicker();
-  File? imageFile;
+  // File? imageFile;
   dynamic _pickImageError;
 
   // get current location from GPS
@@ -34,9 +35,15 @@ class MainScreen_ extends State<MainScreen> {
     try {
       final XFile? pickedFile = await _picker.pickImage(source: source);
       if (pickedFile != null) {
-        setState(() {
-          imageFile = File(pickedFile.path);
-        });
+        // setState(() {
+        //   imageFile = File(pickedFile.path);
+        // });
+        if (!mounted) return;
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => PhotoEditor(image: File(pickedFile.path))),
+        );
       }
     } catch (e) {
       setState(() {
@@ -44,17 +51,17 @@ class MainScreen_ extends State<MainScreen> {
       });
     }
 
-    if (imageFile != null) {
-      final data = await readExifFromBytes(imageFile!.readAsBytesSync());
-      if (data.isEmpty) {
-        print("No EXIF information found");
-        return;
-      }
-      // GPS value should be in this.
-      for (final entry in data.entries) {
-        print("${entry.key}: ${entry.value}");
-      }
-    }
+    // if (imageFile != null) {
+    //   final data = await readExifFromBytes(imageFile!.readAsBytesSync());
+    //   if (data.isEmpty) {
+    //     print("No EXIF information found");
+    //     return;
+    //   }
+    //   // GPS value should be in this.
+    //   for (final entry in data.entries) {
+    //     print("${entry.key}: ${entry.value}");
+    //   }
+    // }
   }
 
   // get current location using Geolocator
@@ -84,19 +91,17 @@ class MainScreen_ extends State<MainScreen> {
         appBar: AppBar(
           title: const Text('APA Photo Sharing'),
         ),
-        body: imageFile != null
-            ? Image.file(imageFile!)
-            : Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    Text(
-                      locationMsg,
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Text(
+                locationMsg,
+                textAlign: TextAlign.center,
               ),
+            ],
+          ),
+        ),
         floatingActionButton: Column(
           mainAxisAlignment: MainAxisAlignment.end,
           children: <Widget>[
