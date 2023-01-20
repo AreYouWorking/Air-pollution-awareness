@@ -2,12 +2,19 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:app/EditPhoto/PhotoEditor.dart';
+import 'package:app/Camera.dart';
 import 'package:exif/exif.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:camera/camera.dart';
+
+late List<CameraDescription> _cameras;
 
 Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  _cameras = await availableCameras();
+
   runApp(MaterialApp(
     theme: ThemeData.dark(),
     home: const MainScreen(),
@@ -137,7 +144,11 @@ class MainScreen_ extends State<MainScreen> {
                   backgroundColor: Colors.red,
                   foregroundColor: Colors.white,
                   onPressed: () {
-                    _onImageButtonPressed(ImageSource.camera);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => Camera(cameras: _cameras)),
+                    );
                   },
                   child: const Icon(Icons.camera_alt)),
             ),
