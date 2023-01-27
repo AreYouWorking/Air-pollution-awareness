@@ -32,6 +32,36 @@ class _CameraState extends State<Camera> {
     }
   }
 
+  Future<void> _onImageLibPressed(ImageSource source) async {
+    try {
+      final XFile? pickedFile = await _picker.pickImage(source: source);
+      if (pickedFile != null) {
+        if (!mounted) return;
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => PhotoEditor(image: File(pickedFile.path))),
+        );
+      }
+    } catch (e) {
+      setState(() {
+        _pickImageError = e;
+      });
+    }
+
+    // if (imageFile != null) {
+    //   final data = await readExifFromBytes(imageFile!.readAsBytesSync());
+    //   if (data.isEmpty) {
+    //     print("No EXIF information found");
+    //     return;
+    //   }
+    //   // GPS value should be in this.
+    //   for (final entry in data.entries) {
+    //     print("${entry.key}: ${entry.value}");
+    //   }
+    // }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -86,6 +116,16 @@ class _CameraState extends State<Camera> {
                     Navigator.pop(context);
                   },
                   child: const Icon(Icons.arrow_back)),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: FloatingActionButton(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                  onPressed: () {
+                    _onImageLibPressed(ImageSource.gallery);
+                  },
+                  child: const Icon(Icons.photo_library)),
             ),
             Padding(
               padding: const EdgeInsets.all(8.0),

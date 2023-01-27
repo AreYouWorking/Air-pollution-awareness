@@ -10,6 +10,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:camera/camera.dart';
 
 late List<CameraDescription> _cameras;
+const greyUI = Color.fromRGBO(28, 28, 30, 1);
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -38,39 +39,6 @@ class MainScreen_ extends State<MainScreen> {
   late String lat;
   late String long;
 
-  Future<void> _onImageButtonPressed(ImageSource source) async {
-    try {
-      final XFile? pickedFile = await _picker.pickImage(source: source);
-      if (pickedFile != null) {
-        // setState(() {
-        //   imageFile = File(pickedFile.path);
-        // });
-        if (!mounted) return;
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) => PhotoEditor(image: File(pickedFile.path))),
-        );
-      }
-    } catch (e) {
-      setState(() {
-        _pickImageError = e;
-      });
-    }
-
-    // if (imageFile != null) {
-    //   final data = await readExifFromBytes(imageFile!.readAsBytesSync());
-    //   if (data.isEmpty) {
-    //     print("No EXIF information found");
-    //     return;
-    //   }
-    //   // GPS value should be in this.
-    //   for (final entry in data.entries) {
-    //     print("${entry.key}: ${entry.value}");
-    //   }
-    // }
-  }
-
   // get current location using Geolocator
   Future<Position> _getCurrentLocation() async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
@@ -95,27 +63,56 @@ class MainScreen_ extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: const Text('APA Photo Sharing'),
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: const [
+            Text(
+              'AirWareness',
+              textScaleFactor: 1.2,
+            ),
+            Text(
+              'Suthep ChiangMai',
+              textScaleFactor: 0.7,
+            )
+          ],
         ),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Text(
-                locationMsg,
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
+      ),
+      body: Container(
+        margin: const EdgeInsets.only(left: 40, top: 20),
+        child: Column(
+          children: <Widget>[
+            todayWidget(),
+            dailyWidget(),
+            hourlyWidget(),
+          ],
         ),
-        floatingActionButton: Column(
-          mainAxisAlignment: MainAxisAlignment.end,
+      ),
+      floatingActionButton: Container(
+        color: greyUI,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: FloatingActionButton(
-                  backgroundColor: Colors.red,
+                  backgroundColor: greyUI,
+                  foregroundColor: Colors.white,
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => Camera(cameras: _cameras)),
+                    );
+                  },
+                  child: const Icon(Icons.camera_alt)),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: FloatingActionButton(
+                  backgroundColor: greyUI,
                   foregroundColor: Colors.white,
                   onPressed: () {
                     _getCurrentLocation().then((value) {
@@ -128,31 +125,71 @@ class MainScreen_ extends State<MainScreen> {
                   },
                   child: const Icon(Icons.gps_fixed)),
             ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: FloatingActionButton(
-                  backgroundColor: Colors.red,
-                  foregroundColor: Colors.white,
-                  onPressed: () {
-                    _onImageButtonPressed(ImageSource.gallery);
-                  },
-                  child: const Icon(Icons.photo_library)),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: FloatingActionButton(
-                  backgroundColor: Colors.red,
-                  foregroundColor: Colors.white,
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => Camera(cameras: _cameras)),
-                    );
-                  },
-                  child: const Icon(Icons.camera_alt)),
-            ),
           ],
-        ));
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+    );
+  }
+
+  Column hourlyWidget() {
+    return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Hourly',
+                textScaleFactor: 1.3,
+              ),
+              Container(
+                decoration: BoxDecoration(
+                    color: greyUI, borderRadius: BorderRadius.circular(15.0)),
+                height: 200,
+                width: 320,
+              )
+            ],
+          );
+  }
+
+  Container dailyWidget() {
+    return Container(
+            margin: const EdgeInsets.only(bottom: 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Daily',
+                  textScaleFactor: 1.3,
+                ),
+                Container(
+                  decoration: BoxDecoration(
+                      color: greyUI, borderRadius: BorderRadius.circular(15.0)),
+                  height: 175,
+                  width: 320,
+                )
+              ],
+            ),
+          );
+  }
+
+  Container todayWidget() {
+    return Container(
+            margin: const EdgeInsets.only(bottom: 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Today',
+                  textScaleFactor: 1.3,
+                ),
+                Container(
+                  decoration: BoxDecoration(
+                      color: const Color.fromRGBO(255, 77, 0, 1),
+                      borderRadius: BorderRadius.circular(15.0)),
+                  height: 200,
+                  width: 320,
+                )
+              ],
+            ),
+          );
   }
 }
