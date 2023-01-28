@@ -1,4 +1,3 @@
-import 'package:app/main.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:app/EditPhoto/PhotoEditor.dart';

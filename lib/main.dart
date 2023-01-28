@@ -1,20 +1,14 @@
 import 'dart:async';
-import 'dart:io';
 
-import 'package:app/EditPhoto/PhotoEditor.dart';
-import 'package:app/Camera.dart';
-import 'package:exif/exif.dart';
+import 'package:app/forecast.dart';
+import 'package:app/memory.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:camera/camera.dart';
 
-late List<CameraDescription> _cameras;
 const greyUI = Color.fromRGBO(28, 28, 30, 1);
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  _cameras = await availableCameras();
 
   runApp(MaterialApp(
     theme: ThemeData.dark(),
@@ -26,14 +20,10 @@ class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
 
   @override
-  State<StatefulWidget> createState() => MainScreen_();
+  State<StatefulWidget> createState() => _MainScreen();
 }
 
-class MainScreen_ extends State<MainScreen> {
-  final ImagePicker _picker = ImagePicker();
-  // File? imageFile;
-  dynamic _pickImageError;
-
+class _MainScreen extends State<MainScreen> {
   // get current location from GPS
   String locationMsg = 'Current Location of the user';
   late String lat;
@@ -60,6 +50,19 @@ class MainScreen_ extends State<MainScreen> {
     return await Geolocator.getCurrentPosition();
   }
 
+  int _selectedIndex = 1;
+
+  static const List<Widget> _widgetOptions = <Widget>[
+    Memory(),
+    Forecast(),
+  ];
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -80,116 +83,40 @@ class MainScreen_ extends State<MainScreen> {
           ],
         ),
       ),
-      body: Container(
-        margin: const EdgeInsets.only(left: 40, top: 20),
-        child: Column(
-          children: <Widget>[
-            todayWidget(),
-            dailyWidget(),
-            hourlyWidget(),
-          ],
-        ),
-      ),
-      floatingActionButton: Container(
+      body: _widgetOptions.elementAt(_selectedIndex),
+      bottomNavigationBar: Container(
         color: greyUI,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: FloatingActionButton(
-                  backgroundColor: greyUI,
-                  foregroundColor: Colors.white,
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => Camera(cameras: _cameras)),
-                    );
-                  },
-                  child: const Icon(Icons.camera_alt)),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: FloatingActionButton(
-                  backgroundColor: greyUI,
-                  foregroundColor: Colors.white,
-                  onPressed: () {
-                    _getCurrentLocation().then((value) {
-                      lat = '${value.latitude}';
-                      long = '${value.longitude}';
-                      setState(() {
-                        locationMsg = 'Latitude: $lat, Longitude: $long';
-                      });
-                    });
-                  },
-                  child: const Icon(Icons.gps_fixed)),
-            ),
+        child: BottomNavigationBar(
+          items: const <BottomNavigationBarItem>[
+            BottomNavigationBarItem(
+                icon: Icon(Icons.camera_alt), label: 'camera', backgroundColor: greyUI),
+            BottomNavigationBarItem(
+                icon: Icon(Icons.filter_drama), label: 'forecast', backgroundColor: greyUI)
           ],
+          selectedItemColor: Colors.white,
+          currentIndex: _selectedIndex,
+          onTap: _onItemTapped,
         ),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 
-  Column hourlyWidget() {
-    return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Hourly',
-                textScaleFactor: 1.3,
-              ),
-              Container(
-                decoration: BoxDecoration(
-                    color: greyUI, borderRadius: BorderRadius.circular(15.0)),
-                height: 200,
-                width: 320,
-              )
-            ],
-          );
+  Container gpsButton() {
+    return Container(
+      child: FloatingActionButton(
+          backgroundColor: greyUI,
+          foregroundColor: Colors.white,
+          onPressed: () {
+            _getCurrentLocation().then((value) {
+              lat = '${value.latitude}';
+              long = '${value.longitude}';
+              setState(() {
+                locationMsg = 'Latitude: $lat, Longitude: $long';
+              });
+            });
+          },
+          child: const Icon(Icons.gps_fixed)),
+    );
   }
 
-  Container dailyWidget() {
-    return Container(
-            margin: const EdgeInsets.only(bottom: 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Daily',
-                  textScaleFactor: 1.3,
-                ),
-                Container(
-                  decoration: BoxDecoration(
-                      color: greyUI, borderRadius: BorderRadius.circular(15.0)),
-                  height: 175,
-                  width: 320,
-                )
-              ],
-            ),
-          );
-  }
-
-  Container todayWidget() {
-    return Container(
-            margin: const EdgeInsets.only(bottom: 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Today',
-                  textScaleFactor: 1.3,
-                ),
-                Container(
-                  decoration: BoxDecoration(
-                      color: const Color.fromRGBO(255, 77, 0, 1),
-                      borderRadius: BorderRadius.circular(15.0)),
-                  height: 200,
-                  width: 320,
-                )
-              ],
-            ),
-          );
-  }
 }
