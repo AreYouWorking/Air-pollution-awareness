@@ -1,9 +1,13 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:app/forecast.dart';
 import 'package:app/memory.dart';
+import 'package:app/openmetro/airquality.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 
 const greyUI = Color.fromRGBO(28, 28, 30, 1);
 
@@ -25,9 +29,8 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreen extends State<MainScreen> {
   // get current location from GPS
-  String locationMsg = 'Current Location of the user';
-  late String lat;
-  late String long;
+  late String lat = "";
+  late String long = "";
 
   // get current location using Geolocator
   Future<Position> _getCurrentLocation() async {
@@ -49,10 +52,8 @@ class _MainScreen extends State<MainScreen> {
     }
     return await Geolocator.getCurrentPosition();
   }
-
   int _selectedIndex = 1;
-
-  static const List<Widget> _widgetOptions = <Widget>[
+  static const _widgetOptions = <Widget>[
     Memory(),
     Forecast(),
   ];
@@ -63,6 +64,27 @@ class _MainScreen extends State<MainScreen> {
     });
   }
 
+  Future<void> initData() async {
+    try {
+      Position v = await _getCurrentLocation();
+      setState(() {
+        lat = "${v.latitude}";
+        long = "${v.longitude}";
+      });
+      var data = await getAirQuality5day(lat, long);
+      print(data.toJson());
+      print(data.hourly.us_aqi_pm2_5);
+    } catch (_) {
+      // do something if can't fetch gps location
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    initData().whenComplete(() => null);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -71,13 +93,13 @@ class _MainScreen extends State<MainScreen> {
         backgroundColor: Colors.black,
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: const [
-            Text(
+          children: [
+            const Text(
               'AirWareness',
               textScaleFactor: 1.2,
             ),
             Text(
-              'Suthep ChiangMai',
+              "$lat, $long",
               textScaleFactor: 0.7,
             )
           ],
@@ -89,9 +111,13 @@ class _MainScreen extends State<MainScreen> {
         child: BottomNavigationBar(
           items: const <BottomNavigationBarItem>[
             BottomNavigationBarItem(
-                icon: Icon(Icons.camera_alt), label: 'camera', backgroundColor: greyUI),
+                icon: Icon(Icons.camera_alt),
+                label: 'camera',
+                backgroundColor: greyUI),
             BottomNavigationBarItem(
-                icon: Icon(Icons.filter_drama), label: 'forecast', backgroundColor: greyUI)
+                icon: Icon(Icons.filter_drama),
+                label: 'forecast',
+                backgroundColor: greyUI)
           ],
           selectedItemColor: Colors.white,
           currentIndex: _selectedIndex,
@@ -100,23 +126,4 @@ class _MainScreen extends State<MainScreen> {
       ),
     );
   }
-
-  Container gpsButton() {
-    return Container(
-      child: FloatingActionButton(
-          backgroundColor: greyUI,
-          foregroundColor: Colors.white,
-          onPressed: () {
-            _getCurrentLocation().then((value) {
-              lat = '${value.latitude}';
-              long = '${value.longitude}';
-              setState(() {
-                locationMsg = 'Latitude: $lat, Longitude: $long';
-              });
-            });
-          },
-          child: const Icon(Icons.gps_fixed)),
-    );
-  }
-
 }
