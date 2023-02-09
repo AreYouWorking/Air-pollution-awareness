@@ -13,15 +13,16 @@ class _ForecastState extends State<Forecast> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(left: 40, top: 20),
-      child: Column(
-        children: <Widget>[
-          todayWidget(),
-          dailyWidget(),
-          hourlyWidget(),
-        ],
-      ),
-    );
+        margin: const EdgeInsets.only(left: 40, top: 20),
+        child: SingleChildScrollView(
+          child: Column(
+            children: <Widget>[
+              todayWidget(),
+              dailyWidget(),
+              hourlyWidget(),
+            ],
+          ),
+        ));
   }
 
   Column hourlyWidget() {

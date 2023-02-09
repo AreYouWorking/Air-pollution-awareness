@@ -40,7 +40,7 @@ class _MemoryState extends State<Memory> {
                 ),
               )),
           // TODO: this might need to change to make it scrollable
-          Container( 
+          Container(
             margin: const EdgeInsets.only(top: 20),
             child: Column(children: [
               const Text("Memory", textScaleFactor: 1.5),
@@ -51,7 +51,9 @@ class _MemoryState extends State<Memory> {
                   crossAxisCount: 3,
                   children: List.generate(8, (index) {
                     return Container(
-                      decoration: BoxDecoration(borderRadius: BorderRadius.circular(15), color: greyUI),
+                      decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(15),
+                          color: greyUI),
                       margin: const EdgeInsets.all(5),
                       width: 100,
                       height: 200,

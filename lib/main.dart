@@ -52,6 +52,7 @@ class _MainScreen extends State<MainScreen> {
     }
     return await Geolocator.getCurrentPosition();
   }
+
   int _selectedIndex = 1;
   static const _widgetOptions = <Widget>[
     Memory(),
@@ -88,6 +89,7 @@ class _MainScreen extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // resizeToAvoidBottomInset: true, // (size themselves to avoid the onscreen keyboard)
       backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: Colors.black,
@@ -105,7 +107,8 @@ class _MainScreen extends State<MainScreen> {
           ],
         ),
       ),
-      body: _widgetOptions.elementAt(_selectedIndex),
+      body: SingleChildScrollView(
+          child: _widgetOptions.elementAt(_selectedIndex)),
       bottomNavigationBar: Container(
         color: greyUI,
         child: BottomNavigationBar(
