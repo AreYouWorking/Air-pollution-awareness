@@ -39,29 +39,32 @@ class _MemoryState extends State<Memory> {
                   size: 50,
                 ),
               )),
-          // TODO: this might need to change to make it scrollable
-          Container(
-            margin: const EdgeInsets.only(top: 20),
-            child: Column(children: [
-              const Text("Memory", textScaleFactor: 1.5),
-              Container(
-                margin: const EdgeInsets.all(20),
-                height: 400,
-                child: GridView.count(
-                  crossAxisCount: 3,
-                  children: List.generate(8, (index) {
-                    return Container(
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(15),
-                          color: greyUI),
-                      margin: const EdgeInsets.all(5),
-                      width: 100,
-                      height: 200,
-                    );
-                  }),
-                ),
-              )
-            ]),
+          Expanded(
+            child: Container(
+              margin: const EdgeInsets.only(top: 20),
+              child: Column(children: [
+                const Text("Memory", textScaleFactor: 1.5),
+                Expanded(
+                  child: Container(
+                    margin: const EdgeInsets.all(20),
+                    height: 400,
+                    child: GridView.count(
+                      crossAxisCount: 3,
+                      children: List.generate(20, (index) {
+                        return Container(
+                          decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(15),
+                              color: greyUI),
+                          margin: const EdgeInsets.all(5),
+                          width: 100,
+                          height: 200,
+                        );
+                      }),
+                    ),
+                  ),
+                )
+              ]),
+            ),
           )
         ],
       )),

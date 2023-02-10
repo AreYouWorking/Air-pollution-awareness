@@ -12,6 +12,7 @@ Future<http.Response> fetchAitQuality(String lat, String long, String startDate,
   String params =
       "?latitude=$lat&longitude=$long&hourly=us_aqi_pm2_5&timezone=Asia%2FBangkok&start_date=$startDate&end_date=$endDate";
   
+  print(base + params);
   return http.get(Uri.parse(base + params));
 }
 

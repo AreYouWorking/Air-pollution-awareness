@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:app/forecast.dart';
 import 'package:app/memory.dart';
 import 'package:app/openmetro/airquality.dart';
+import 'package:app/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
@@ -28,30 +29,8 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreen extends State<MainScreen> {
-  // get current location from GPS
   late String lat = "";
   late String long = "";
-
-  // get current location using Geolocator
-  Future<Position> _getCurrentLocation() async {
-    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      return Future.error('Location services are disabled.');
-    }
-
-    LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        return Future.error('Location permissions are denied');
-      }
-    }
-    if (permission == LocationPermission.deniedForever) {
-      return Future.error(
-          'Location permissions are permanently denied, we cannot request location');
-    }
-    return await Geolocator.getCurrentPosition();
-  }
 
   int _selectedIndex = 1;
   static const _widgetOptions = <Widget>[
@@ -65,25 +44,22 @@ class _MainScreen extends State<MainScreen> {
     });
   }
 
-  Future<void> initData() async {
+  Future<void> _initData() async {
     try {
-      Position v = await _getCurrentLocation();
+      Position v = await getCurrentLocation();
       setState(() {
         lat = "${v.latitude}";
         long = "${v.longitude}";
       });
-      var data = await getAirQuality5day(lat, long);
-      print(data.toJson());
-      print(data.hourly.us_aqi_pm2_5);
     } catch (_) {
-      // do something if can't fetch gps location
+      // TODO: do something if can't fetch gps location
     }
   }
 
   @override
   void initState() {
     super.initState();
-    initData().whenComplete(() => null);
+    _initData().whenComplete(() => null);
   }
 
   @override
