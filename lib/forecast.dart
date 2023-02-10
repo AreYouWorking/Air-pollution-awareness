@@ -1,4 +1,3 @@
-import 'dart:ffi';
 
 import 'package:app/openmetro/airquality.dart';
 import 'package:app/aqicn/geofeed.dart' as aqicn;
@@ -27,7 +26,6 @@ class ChartData {
 
 // maybe we can use tuple instead of List ?
 List<DailyData> getDailyData(aqicn.Data data) {
-  print(data.aqi);
   List<int> aqis = [data.aqi];
   var now = DateTime.now();
   var i = 0;
@@ -38,7 +36,7 @@ List<DailyData> getDailyData(aqicn.Data data) {
       i += 1;
     }
   }
-  
+
   List<DailyData> result = [];
   for (var aqi in aqis) {
     if (aqi < 12) {
@@ -73,8 +71,8 @@ List<ChartData> getHourlyData(Airquality data) {
 
   List<ChartData> res = [];
   for (var i = 0; i <= 48; i++) {
-    res.add(ChartData(
-        DateTime.parse(data.hourly.time[i]).hour, data.hourly.us_aqi_pm2_5[i]!));
+    res.add(ChartData(DateTime.parse(data.hourly.time[i]).hour,
+        data.hourly.us_aqi_pm2_5[i]!));
   }
   return res;
 }
@@ -88,7 +86,8 @@ class Forecast extends StatefulWidget {
 
 class _ForecastState extends State<Forecast> {
   Airquality? data;
-  aqicn.Data? aqi;
+  List<DailyData>? aqi;
+  aqicn.Iaqi? iaqi;
 
   Future<void> _initData() async {
     try {
@@ -98,8 +97,9 @@ class _ForecastState extends State<Forecast> {
       var lat = "${v.latitude}";
       var long = "${v.longitude}";
       data = await getAirQuality5day(lat, long);
-      aqi = await aqicn.getData(lat, long);
-
+      var aqicnData = await aqicn.getData(lat, long);
+      aqi = getDailyData(aqicnData);
+      iaqi = aqicnData.iaqi;
       setState(() {});
     } catch (_) {
       // TODO: do something if can't fetch gps location
@@ -120,7 +120,7 @@ class _ForecastState extends State<Forecast> {
         children: <Widget>[
           Expanded(
               child: infoCard(
-                  "Today", const Color.fromRGBO(255, 77, 0, 1), Container())),
+                  "Today", const Color.fromRGBO(255, 77, 0, 1), today())),
           Expanded(child: infoCard("Daily", greyUI, daily())),
           Expanded(child: infoCard("Hourly", greyUI, hourly())),
         ],
@@ -128,23 +128,98 @@ class _ForecastState extends State<Forecast> {
     );
   }
 
-  Container daily() {
+  Widget today() {
     if (aqi == null) {
       return Container();
     }
 
-    var res = getDailyData(aqi!);
+    return Column(children: [
+      Expanded(
+        flex: 3,
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                aqi![0].emoji,
+                textScaleFactor: 3.0,
+                textAlign: TextAlign.center,
+              ),
+            ),
+            Expanded(
+              flex: 2,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 15.0),
+                child: Column(
+                  children: [
+                    Text(
+                      "AQI ${aqi![0].aqi}",
+                      textScaleFactor: 2.0,
+                    ),
+                    Text(
+                      aqi![0].text,
+                      textScaleFactor: 2.0,
+                    )
+                  ],
+                ),
+              ),
+            )
+          ],
+        ),
+      ),
+      Expanded(
+        flex: 2,
+        child: Container(
+          padding: const EdgeInsets.only(top: 15),
+          decoration: const BoxDecoration(
+              color: Color.fromRGBO(135, 57, 0, 1),
+              borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(15.0),
+                  bottomRight: Radius.circular(15.0))),
+          child: Row(
+            children: todayLower(),
+          ),
+        ),
+      )
+    ]);
+  }
+
+  List<Widget> todayLower() {
+    if (iaqi == null) {
+      return [Container()];
+    }
+
+    return [
+      Expanded(
+        child: Column(
+          children: [Text("5 🥵", textScaleFactor: 1.5,), Text("Hotspot")],
+        ),
+      ),
+      Expanded(
+        child: Column(
+          children: [Text("${iaqi!.w.v} Km/h", textScaleFactor: 1.5,), Text("Not Windy")],
+        ),
+      ),
+      Expanded(
+        child: Column(
+          children: [Text("${iaqi!.t.v} °C", textScaleFactor: 1.5,), Text("Hot")],
+        ),
+      )
+    ];
+  }
+
+  Widget daily() {
+    if (aqi == null) {
+      return Container();
+    }
     final now = DateTime.now();
     final nextDay = now.add(const Duration(days: 1));
     final next2Day = now.add(const Duration(days: 2));
-    return Container(
-      child: Row(
-        children: [
-          dailyCard(res[0], "Today"),
-          dailyCard(res[1], DateFormat.EEEE().format(nextDay)),
-          dailyCard(res[2], DateFormat.EEEE().format(next2Day))
-        ],
-      ),
+    return Row(
+      children: [
+        dailyCard(aqi![0], "Today"),
+        dailyCard(aqi![1], DateFormat.EEEE().format(nextDay)),
+        dailyCard(aqi![2], DateFormat.EEEE().format(next2Day))
+      ],
     );
   }
 
@@ -187,8 +262,7 @@ class _ForecastState extends State<Forecast> {
           chart.ColumnSeries<ChartData, int>(
               dataSource: datasrc,
               xValueMapper: (ChartData data, _) => data.x,
-              yValueMapper: (ChartData data, _) => data.y
-          ),
+              yValueMapper: (ChartData data, _) => data.y),
         ],
       ),
     );
