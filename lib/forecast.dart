@@ -1,8 +1,12 @@
+import 'dart:ffi';
+
 import 'package:app/openmetro/airquality.dart';
+import 'package:app/aqicn/geofeed.dart' as aqicn;
 import 'package:app/utils.dart';
 import 'package:flutter/widgets.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
+import 'package:syncfusion_flutter_charts/charts.dart' as chart;
 
 const greyUI = Color.fromRGBO(28, 28, 30, 1);
 
@@ -15,25 +19,28 @@ class DailyData {
   DailyData(this.color, this.emoji, this.aqi, this.text);
 }
 
+class ChartData {
+  final int x;
+  final int y;
+  ChartData(this.x, this.y);
+}
+
 // maybe we can use tuple instead of List ?
-List<DailyData> getDailyData(Airquality? data) {
-  // TODO: make this receive non-null data, and guarantee some constrains on it
-  if (data == null) {
-    throw Exception('data should is null');
+List<DailyData> getDailyData(aqicn.Data data) {
+  print(data.aqi);
+  List<int> aqis = [data.aqi];
+  var now = DateTime.now();
+  var i = 0;
+  for (var v in data.forecast.daily.pm25) {
+    if (i > 1) break;
+    if (DateTime.parse(v.day).isAfter(now)) {
+      aqis.add(v.avg);
+      i += 1;
+    }
   }
-  if (data.hourly.us_aqi_pm2_5.length < 48) {
-    throw Exception('data is shorter than expected (48)');
-  }
-  final aqiIndex = [
-    0,
-    24,
-    48
-  ]; // we fetched hourly data so just use next 24 hours
+  
   List<DailyData> result = [];
-
-  for (var i in aqiIndex) {
-    var aqi = data.hourly.us_aqi_pm2_5[i]!;
-
+  for (var aqi in aqis) {
     if (aqi < 12) {
       result.add(
           DailyData(const Color.fromRGBO(55, 146, 55, 1), "😀", aqi, "Good"));
@@ -58,6 +65,20 @@ List<DailyData> getDailyData(Airquality? data) {
   return result;
 }
 
+List<ChartData> getHourlyData(Airquality data) {
+  // TODO: make this receive non-null data, and guarantee some constrains on it
+  if (data.hourly.us_aqi_pm2_5.length < 48) {
+    throw Exception('data is shorter than expected (48)');
+  }
+
+  List<ChartData> res = [];
+  for (var i = 0; i <= 48; i++) {
+    res.add(ChartData(
+        DateTime.parse(data.hourly.time[i]).hour, data.hourly.us_aqi_pm2_5[i]!));
+  }
+  return res;
+}
+
 class Forecast extends StatefulWidget {
   const Forecast({super.key});
 
@@ -67,14 +88,19 @@ class Forecast extends StatefulWidget {
 
 class _ForecastState extends State<Forecast> {
   Airquality? data;
+  aqicn.Data? aqi;
 
   Future<void> _initData() async {
     try {
       // TODO: we get user GPS again, maybe there are ways to pass GPS from main to this widget
+      // also maybe we can use background service to do all this?
       Position v = await getCurrentLocation();
       var lat = "${v.latitude}";
       var long = "${v.longitude}";
       data = await getAirQuality5day(lat, long);
+      aqi = await aqicn.getData(lat, long);
+
+      setState(() {});
     } catch (_) {
       // TODO: do something if can't fetch gps location
     }
@@ -96,31 +122,30 @@ class _ForecastState extends State<Forecast> {
               child: infoCard(
                   "Today", const Color.fromRGBO(255, 77, 0, 1), Container())),
           Expanded(child: infoCard("Daily", greyUI, daily())),
-          Expanded(child: infoCard("Hourly", greyUI, Container())),
+          Expanded(child: infoCard("Hourly", greyUI, hourly())),
         ],
       ),
     );
   }
 
   Container daily() {
-    try {
-      var res = getDailyData(data);
-      final now = DateTime.now();
-      final nextDay = now.add(const Duration(days: 1));
-      final next2Day = now.add(const Duration(days: 2));
-      return Container(
-        child: Row(
-          children: [
-            dailyCard(res[0], "Today"),
-            dailyCard(res[1], DateFormat.EEEE().format(nextDay)),
-            dailyCard(res[2], DateFormat.EEEE().format(next2Day))
-          ],
-        ),
-      );
-    } catch (_) {
+    if (aqi == null) {
       return Container();
     }
-    ;
+
+    var res = getDailyData(aqi!);
+    final now = DateTime.now();
+    final nextDay = now.add(const Duration(days: 1));
+    final next2Day = now.add(const Duration(days: 2));
+    return Container(
+      child: Row(
+        children: [
+          dailyCard(res[0], "Today"),
+          dailyCard(res[1], DateFormat.EEEE().format(nextDay)),
+          dailyCard(res[2], DateFormat.EEEE().format(next2Day))
+        ],
+      ),
+    );
   }
 
   Expanded dailyCard(DailyData data, String day) {
@@ -146,6 +171,25 @@ class _ForecastState extends State<Forecast> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Container hourly() {
+    if (data == null) {
+      return Container();
+    }
+
+    var datasrc = getHourlyData(data!);
+    return Container(
+      child: chart.SfCartesianChart(
+        series: <chart.ChartSeries<ChartData, int>>[
+          chart.ColumnSeries<ChartData, int>(
+              dataSource: datasrc,
+              xValueMapper: (ChartData data, _) => data.x,
+              yValueMapper: (ChartData data, _) => data.y
+          ),
+        ],
       ),
     );
   }
