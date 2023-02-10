@@ -1,19 +1,17 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:app/forecast.dart';
 import 'package:app/memory.dart';
-import 'package:app/openmetro/airquality.dart';
 import 'package:app/utils.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:http/http.dart' as http;
-import 'package:intl/intl.dart';
 
 const greyUI = Color.fromRGBO(28, 28, 30, 1);
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load();
 
   runApp(MaterialApp(
     theme: ThemeData.dark(),
