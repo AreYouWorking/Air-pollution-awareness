@@ -78,40 +78,17 @@ List<ChartData> getHourlyData(Airquality data) {
 }
 
 class Forecast extends StatefulWidget {
-  const Forecast({super.key});
+  Airquality? data;
+  List<DailyData>? aqi;
+  aqicn.Iaqi? iaqi;
+
+  Forecast({super.key, this.data, this.aqi, this.iaqi});
 
   @override
   State<Forecast> createState() => _ForecastState();
 }
 
 class _ForecastState extends State<Forecast> {
-  Airquality? data;
-  List<DailyData>? aqi;
-  aqicn.Iaqi? iaqi;
-
-  Future<void> _initData() async {
-    try {
-      // TODO: we get user GPS again, maybe there are ways to pass GPS from main to this widget
-      // also maybe we can use background service to do all this?
-      Position v = await getCurrentLocation();
-      var lat = "${v.latitude}";
-      var long = "${v.longitude}";
-      data = await getAirQuality5day(lat, long);
-      var aqicnData = await aqicn.getData(lat, long);
-      aqi = getDailyData(aqicnData);
-      iaqi = aqicnData.iaqi;
-      setState(() {});
-    } catch (_) {
-      // TODO: do something if can't fetch gps location
-    }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _initData().whenComplete(() => null);
-  }
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -129,7 +106,7 @@ class _ForecastState extends State<Forecast> {
   }
 
   Widget today() {
-    if (aqi == null) {
+    if (widget.aqi == null) {
       return Container();
     }
 
@@ -140,7 +117,7 @@ class _ForecastState extends State<Forecast> {
           children: [
             Expanded(
               child: Text(
-                aqi![0].emoji,
+                widget.aqi![0].emoji,
                 textScaleFactor: 3.0,
                 textAlign: TextAlign.center,
               ),
@@ -152,11 +129,11 @@ class _ForecastState extends State<Forecast> {
                 child: Column(
                   children: [
                     Text(
-                      "AQI ${aqi![0].aqi}",
+                      "AQI ${widget.aqi![0].aqi}",
                       textScaleFactor: 2.0,
                     ),
                     Text(
-                      aqi![0].text,
+                      widget.aqi![0].text,
                       textScaleFactor: 2.0,
                     )
                   ],
@@ -184,7 +161,7 @@ class _ForecastState extends State<Forecast> {
   }
 
   List<Widget> todayLower() {
-    if (iaqi == null) {
+    if (widget.iaqi == null) {
       return [Container()];
     }
 
@@ -196,19 +173,19 @@ class _ForecastState extends State<Forecast> {
       ),
       Expanded(
         child: Column(
-          children: [Text("${iaqi!.w.v} Km/h", textScaleFactor: 1.5,), Text("Not Windy")],
+          children: [Text("${widget.iaqi!.w.v} Km/h", textScaleFactor: 1.5,), Text("Not Windy")],
         ),
       ),
       Expanded(
         child: Column(
-          children: [Text("${iaqi!.t.v} °C", textScaleFactor: 1.5,), Text("Hot")],
+          children: [Text("${widget.iaqi!.t.v} °C", textScaleFactor: 1.5,), Text("Hot")],
         ),
       )
     ];
   }
 
   Widget daily() {
-    if (aqi == null) {
+    if (widget.aqi == null) {
       return Container();
     }
     final now = DateTime.now();
@@ -216,9 +193,9 @@ class _ForecastState extends State<Forecast> {
     final next2Day = now.add(const Duration(days: 2));
     return Row(
       children: [
-        dailyCard(aqi![0], "Today"),
-        dailyCard(aqi![1], DateFormat.EEEE().format(nextDay)),
-        dailyCard(aqi![2], DateFormat.EEEE().format(next2Day))
+        dailyCard(widget.aqi![0], "Today"),
+        dailyCard(widget.aqi![1], DateFormat.EEEE().format(nextDay)),
+        dailyCard(widget.aqi![2], DateFormat.EEEE().format(next2Day))
       ],
     );
   }
@@ -251,11 +228,11 @@ class _ForecastState extends State<Forecast> {
   }
 
   Container hourly() {
-    if (data == null) {
+    if (widget.data == null) {
       return Container();
     }
 
-    var datasrc = getHourlyData(data!);
+    var datasrc = getHourlyData(widget.data!);
     return Container(
       child: chart.SfCartesianChart(
         series: <chart.ChartSeries<ChartData, int>>[

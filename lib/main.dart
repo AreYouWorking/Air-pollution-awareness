@@ -1,7 +1,9 @@
 import 'dart:async';
 
+import 'package:app/aqicn/geofeed.dart' as aqicn;
 import 'package:app/forecast.dart';
 import 'package:app/memory.dart';
+import 'package:app/openmetro/airquality.dart';
 import 'package:app/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -29,26 +31,36 @@ class MainScreen extends StatefulWidget {
 class _MainScreen extends State<MainScreen> {
   late String lat = "";
   late String long = "";
+  Airquality? data;
+  List<DailyData>? aqi;
+  aqicn.Iaqi? iaqi;
 
   int _selectedIndex = 1;
-  static const _widgetOptions = <Widget>[
-    Memory(),
-    Forecast(),
-  ];
-
+  Widget currBody = Forecast();
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
+      if (index == 0) {
+        currBody = const Memory();
+      }
+      else {
+        currBody = Forecast(data: data, aqi: aqi, iaqi: iaqi);
+      }
     });
   }
 
   Future<void> _initData() async {
     try {
       Position v = await getCurrentLocation();
-      setState(() {
-        lat = "${v.latitude}";
-        long = "${v.longitude}";
-      });
+      lat = "${v.latitude}";
+      long = "${v.longitude}";
+
+      data = await getAirQuality5day(lat, long);
+      var aqicnData = await aqicn.getData(lat, long);
+      aqi = getDailyData(aqicnData);
+      iaqi = aqicnData.iaqi;
+      currBody = Forecast(data: data, aqi: aqi, iaqi: iaqi);
+      setState(() {});
     } catch (_) {
       // TODO: do something if can't fetch gps location
     }
@@ -81,8 +93,7 @@ class _MainScreen extends State<MainScreen> {
           ],
         ),
       ),
-      body: SingleChildScrollView(
-          child: _widgetOptions.elementAt(_selectedIndex)),
+      body: currBody,
       bottomNavigationBar: Container(
         color: greyUI,
         child: BottomNavigationBar(
