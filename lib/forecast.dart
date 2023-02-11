@@ -1,13 +1,19 @@
-
 import 'package:app/openmetro/airquality.dart';
 import 'package:app/aqicn/geofeed.dart' as aqicn;
-import 'package:app/utils.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_charts/charts.dart' as chart;
 
 const greyUI = Color.fromRGBO(28, 28, 30, 1);
+const aqiColor = [
+  Color.fromRGBO(55, 146, 55, 1),
+  Color.fromARGB(255, 198, 198, 0),
+  Color.fromARGB(255, 212, 180, 73),
+  Color.fromARGB(255, 232, 108, 108),
+  Color.fromARGB(255, 156, 29, 29),
+  Color.fromRGBO(128, 55, 146, 1)
+];
 
 class DailyData {
   Color color;
@@ -19,7 +25,7 @@ class DailyData {
 }
 
 class ChartData {
-  final int x;
+  final DateTime x;
   final int y;
   ChartData(this.x, this.y);
 }
@@ -38,43 +44,36 @@ List<DailyData> getDailyData(aqicn.Data data) {
   }
 
   List<DailyData> result = [];
+  // follwing this scale https://aqicn.org/scale/
   for (var aqi in aqis) {
-    if (aqi < 12) {
-      result.add(
-          DailyData(const Color.fromRGBO(55, 146, 55, 1), "😀", aqi, "Good"));
-    } else if (aqi < 36) {
-      result.add(DailyData(
-          const Color.fromARGB(255, 240, 255, 157), "🙂", aqi, "Moderate"));
-    } else if (aqi < 56) {
-      result.add(DailyData(const Color.fromARGB(255, 212, 180, 73), "😷", aqi,
-          "Unhealthy for SG"));
-    } else if (aqi < 151) {
-      result.add(DailyData(
-          const Color.fromARGB(255, 232, 108, 108), "😷", aqi, "Unhealthy"));
-    } else if (aqi < 251) {
-      result.add(DailyData(
-          const Color.fromARGB(255, 156, 29, 29), "😵", aqi, "Very Unhealthy"));
+    if (aqi <= 50) {
+      result.add(DailyData(aqiColor[0], "😀", aqi, "Good"));
+    } else if (aqi <= 100) {
+      result.add(DailyData(aqiColor[1], "🙂", aqi, "Moderate"));
+    } else if (aqi <= 150) {
+      result.add(DailyData(aqiColor[2], "😷", aqi, "Unhealthy for SG"));
+    } else if (aqi <= 200) {
+      result.add(DailyData(aqiColor[3], "😷", aqi, "Unhealthy"));
+    } else if (aqi <= 300) {
+      result.add(DailyData(aqiColor[4], "😵", aqi, "Very Unhealthy"));
     } else {
-      result.add(DailyData(
-          const Color.fromRGBO(128, 55, 146, 1), "😡", aqi, "Hazardous"));
+      result.add(DailyData(aqiColor[5], "😡", aqi, "Hazardous"));
     }
   }
 
   return result;
 }
 
-List<ChartData> getHourlyData(Airquality data) {
-  // TODO: make this receive non-null data, and guarantee some constrains on it
-  if (data.hourly.us_aqi_pm2_5.length < 48) {
-    throw Exception('data is shorter than expected (48)');
-  }
-
+List<List<ChartData>> getHourlyData(Airquality data) {
   List<ChartData> res = [];
-  for (var i = 0; i <= 48; i++) {
-    res.add(ChartData(DateTime.parse(data.hourly.time[i]).hour,
-        data.hourly.us_aqi_pm2_5[i]!));
+  for (var i = 0; i <= 72; i++) {
+    if (data.hourly.us_aqi_pm2_5[i] == null) {
+      break;
+    }
+    res.add(ChartData(
+        DateTime.parse(data.hourly.time[i]), data.hourly.us_aqi_pm2_5[i]!));
   }
-  return res;
+  return [res.sublist(0, 24), res.sublist(25, 48), res.sublist(49, res.length)];
 }
 
 class Forecast extends StatefulWidget {
@@ -89,6 +88,8 @@ class Forecast extends StatefulWidget {
 }
 
 class _ForecastState extends State<Forecast> {
+  int hourlyCurrIdx = 0;
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -168,17 +169,35 @@ class _ForecastState extends State<Forecast> {
     return [
       Expanded(
         child: Column(
-          children: [Text("5 🥵", textScaleFactor: 1.5,), Text("Hotspot")],
+          children: [
+            Text(
+              "5 🥵",
+              textScaleFactor: 1.5,
+            ),
+            Text("Hotspot")
+          ],
         ),
       ),
       Expanded(
         child: Column(
-          children: [Text("${widget.iaqi!.w.v} Km/h", textScaleFactor: 1.5,), Text("Not Windy")],
+          children: [
+            Text(
+              "${widget.iaqi!.w.v} Km/h",
+              textScaleFactor: 1.5,
+            ),
+            Text("Not Windy")
+          ],
         ),
       ),
       Expanded(
         child: Column(
-          children: [Text("${widget.iaqi!.t.v} °C", textScaleFactor: 1.5,), Text("Hot")],
+          children: [
+            Text(
+              "${widget.iaqi!.t.v} °C",
+              textScaleFactor: 1.5,
+            ),
+            Text("Hot")
+          ],
         ),
       )
     ];
@@ -214,11 +233,19 @@ class _ForecastState extends State<Forecast> {
                 decoration: BoxDecoration(
                     color: data.color,
                     borderRadius: BorderRadius.circular(10.0)),
-                child: Column(children: [
-                  Text(data.emoji),
-                  Text("AQI ${data.aqi}"),
-                  Text(data.text)
-                ]),
+                child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        data.emoji,
+                        textScaleFactor: 1.4,
+                      ),
+                      const SizedBox(
+                        height: 5,
+                      ),
+                      Text("AQI ${data.aqi}"),
+                      Text(data.text)
+                    ]),
               ),
             ),
           ],
@@ -227,22 +254,58 @@ class _ForecastState extends State<Forecast> {
     );
   }
 
-  Container hourly() {
+  Widget hourly() {
     if (widget.data == null) {
       return Container();
     }
 
+    final now = DateTime.now();
+    final nextDay = now.add(const Duration(days: 1));
+    final next2Day = now.add(const Duration(days: 2));
     var datasrc = getHourlyData(widget.data!);
-    return Container(
-      child: chart.SfCartesianChart(
-        series: <chart.ChartSeries<ChartData, int>>[
-          chart.ColumnSeries<ChartData, int>(
-              dataSource: datasrc,
-              xValueMapper: (ChartData data, _) => data.x,
-              yValueMapper: (ChartData data, _) => data.y),
-        ],
-      ),
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            hourlyButton(0, "Today"),
+            hourlyButton(1, DateFormat.EEEE().format(nextDay)),
+            hourlyButton(2, DateFormat.EEEE().format(next2Day)),
+          ],
+        ),
+        Expanded(
+          child: chart.SfCartesianChart(
+            primaryXAxis: chart.DateTimeAxis(
+              dateFormat: DateFormat.H(),
+            ),
+            series: <chart.ChartSeries<ChartData, DateTime>>[
+              chart.ColumnSeries<ChartData, DateTime>(
+                  onCreateRenderer:
+                      (chart.ChartSeries<ChartData, DateTime> series) {
+                    return _CustomColumnSeriesRenderer();
+                  },
+                  dataSource: datasrc[hourlyCurrIdx],
+                  xValueMapper: (ChartData data, _) => data.x,
+                  yValueMapper: (ChartData data, _) => data.y),
+            ],
+          ),
+        ),
+      ],
     );
+  }
+
+  Widget hourlyButton(int idx, String text) {
+    return TextButton(
+        style: TextButton.styleFrom(
+          foregroundColor: Colors.white,
+          shape: const StadiumBorder(side: BorderSide(width: 2.0, color: Colors.white)),
+        ),
+        onPressed: () {
+          setState(() {
+            hourlyCurrIdx = idx;
+          });
+        },
+        child: Text(text));
   }
 
   Container infoCard(String text, Color color, Widget info) {
@@ -266,5 +329,39 @@ class _ForecastState extends State<Forecast> {
         ],
       ),
     );
+  }
+}
+
+class _CustomColumnSeriesRenderer extends chart.ColumnSeriesRenderer {
+  _CustomColumnSeriesRenderer();
+
+  @override
+  chart.ChartSegment createSegment() {
+    return _ColumnCustomPainter();
+  }
+}
+
+class _ColumnCustomPainter extends chart.ColumnSegment {
+  @override
+  Paint getFillPaint() {
+    final Paint customerFillPaint = Paint();
+    customerFillPaint.isAntiAlias = false;
+
+    var aqi = segmentRect.height;
+    if (aqi <= 50) {
+      customerFillPaint.color = aqiColor[0];
+    } else if (aqi <= 100) {
+      customerFillPaint.color = aqiColor[1];
+    } else if (aqi <= 150) {
+      customerFillPaint.color = aqiColor[2];
+    } else if (aqi <= 200) {
+      customerFillPaint.color = aqiColor[3];
+    } else if (aqi <= 300) {
+      customerFillPaint.color = aqiColor[4];
+    } else {
+      customerFillPaint.color = aqiColor[5];
+    }
+    customerFillPaint.style = PaintingStyle.fill;
+    return customerFillPaint;
   }
 }
