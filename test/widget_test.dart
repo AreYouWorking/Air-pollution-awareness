@@ -11,20 +11,25 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:app/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    //await tester.pumpWidget(const MyApp());
-
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
-
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
+  testWidgets('[MainScreen] widgets test', (WidgetTester tester) async {
+    await tester.pumpWidget(
+        MaterialApp(home: const MainScreen(), theme: ThemeData.dark()));
+    // must have application name on main page
+    expect(find.text('AirWareness'), findsOneWidget);
+    // main page must contains 2 button for switch between camera and forecast
+    var forecastBtn = find.text('forecast');
+    var cameraBtn = find.text('camera');
+    expect(forecastBtn, findsOneWidget);
+    expect(cameraBtn, findsOneWidget);
+    // in forecast page must contains 3 section (Today, Daily, Hourly)
+    await tester.tap(forecastBtn);
     await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(find.text('Today'), findsOneWidget);
+    expect(find.text('Daily'), findsOneWidget);
+    expect(find.text('Hourly'), findsOneWidget);
+    // in camera page must contains memory
+    await tester.tap(cameraBtn);
+    await tester.pump();
+    expect(find.text('Memory'), findsOneWidget);
   });
 }
