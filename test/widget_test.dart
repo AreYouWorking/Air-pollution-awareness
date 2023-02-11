@@ -11,25 +11,44 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:app/main.dart';
 
 void main() {
-  testWidgets('[MainScreen] widgets test', (WidgetTester tester) async {
-    await tester.pumpWidget(
-        MaterialApp(home: const MainScreen(), theme: ThemeData.dark()));
-    // must have application name on main page
-    expect(find.text('AirWareness'), findsOneWidget);
-    // main page must contains 2 button for switch between camera and forecast
-    var forecastBtn = find.text('forecast');
-    var cameraBtn = find.text('camera');
-    expect(forecastBtn, findsOneWidget);
-    expect(cameraBtn, findsOneWidget);
-    // in forecast page must contains 3 section (Today, Daily, Hourly)
-    await tester.tap(forecastBtn);
-    await tester.pump();
-    expect(find.text('Today'), findsOneWidget);
-    expect(find.text('Daily'), findsOneWidget);
-    expect(find.text('Hourly'), findsOneWidget);
-    // in camera page must contains memory
-    await tester.tap(cameraBtn);
-    await tester.pump();
-    expect(find.text('Memory'), findsOneWidget);
+  group('[Widget_Test] [MainScreen]', () {
+    testWidgets('should have application name', (WidgetTester tester) async {
+      await tester.pumpWidget(
+          MaterialApp(home: const MainScreen(), theme: ThemeData.dark()));
+      expect(find.text('AirWareness'), findsOneWidget);
+    });
+
+    testWidgets('should have Camera, Forecast button',
+        (WidgetTester tester) async {
+      await tester.pumpWidget(
+          MaterialApp(home: const MainScreen(), theme: ThemeData.dark()));
+      expect(find.text('camera'), findsOneWidget);
+      expect(find.byIcon(Icons.camera_alt), findsOneWidget);
+      expect(find.text('forecast'), findsOneWidget);
+      expect(find.byIcon(Icons.filter_drama), findsOneWidget);
+    });
+
+    testWidgets('forecast page must contains Today, Daily, Hourly',
+        (WidgetTester tester) async {
+      await tester.pumpWidget(
+          MaterialApp(home: const MainScreen(), theme: ThemeData.dark()));
+      var forecastBtn = find.text('forecast');
+      await tester.tap(forecastBtn);
+      await tester.pump();
+      expect(find.text('Today'), findsOneWidget);
+      expect(find.text('Daily'), findsOneWidget);
+      expect(find.text('Hourly'), findsOneWidget);
+    });
+
+    testWidgets('camera page must contains memory and camera button',
+        (WidgetTester tester) async {
+      await tester.pumpWidget(
+          MaterialApp(home: const MainScreen(), theme: ThemeData.dark()));
+      var cameraBtn = find.text('camera');
+      await tester.tap(cameraBtn);
+      await tester.pump();
+      expect(find.text('Memory'), findsOneWidget);
+      expect(find.byIcon(Icons.camera_alt), findsWidgets);
+    });
   });
 }
