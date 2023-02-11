@@ -13,19 +13,23 @@ import 'package:json_annotation/json_annotation.dart';
 const greyUI = Color.fromRGBO(28, 28, 30, 1);
 
 class Suggestlocation {
-  final String display_name;
+  final String place_name;
+  final String place_detail;
+
   final String lat;
   final String lon;
 
   const Suggestlocation({
-    required this.display_name,
+    required this.place_name,
+    required this.place_detail,
     required this.lat,
     required this.lon,
   });
 
   factory Suggestlocation.fromJson(Map<String, dynamic> json) {
     return Suggestlocation(
-      display_name: json['display_name'] as String,
+      place_name: json['display_place'] as String,
+      place_detail: json['display_name'] as String,
       lat: json['lat'] as String,
       lon: json['lon'] as String,
     );
@@ -50,9 +54,9 @@ class Selectlocation extends StatefulWidget {
 
 class _SelectlocationState extends State<Selectlocation> {
   final textController = TextEditingController();
-  late String lat = "";
-  late String long = "";
-  late List<Suggestlocation>? Suggestdata;
+  List<Suggestlocation>? Suggestdata;
+  Widget suggestLocWidget = SizedBox.shrink();
+
   @override
   void dispose() {
     // Clean up the controller when the widget is disposed.
@@ -64,24 +68,23 @@ class _SelectlocationState extends State<Selectlocation> {
       String text, String token) async {
     // https://api.locationiq.com/v1/autocomplete?key=YOUR_ACCESS_TOKEN&q=Empire
     const base = "https://api.locationiq.com/v1/autocomplete?";
-    // String params = ":$lat;$long/?token=$token";
-    String params = "key=$token&q=$text";
+    String params = "key=$token&countrycodes=th&q=$text";
     print(base + params);
     final response = await http.get(Uri.parse(base + params));
-    return compute(parseJson, response.body);
+    if (response.statusCode == 200) {
+      return compute(parseJson, response.body);
+    } else {
+      throw Exception("Failed to load location.");
+    }
   }
 
   Future<List<Suggestlocation>> searchLocation(String text) async {
-    // var token = dotenv.env["LOCAQ_KEY"];
-    var token = 'pk.eb095100e086b12c44637826d5379fc5';
+    var token = dotenv.env["LOCAQ_KEY"];
     if (token == null) {
       throw Exception("Please set LOCAQ_KEY in .env file");
     }
     List<Suggestlocation> resp = await fetchSuggestlocation(text, token);
-    print("resp");
-    print(resp.elementAt(0).display_name);
-    print(resp.elementAt(0).lat);
-    print(resp.elementAt(0).lon);
+
     return resp;
   }
 
@@ -102,7 +105,7 @@ class _SelectlocationState extends State<Selectlocation> {
                     controller: textController,
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(),
-                      hintText: 'Enter a search term',
+                      hintText: 'Search place',
                     ),
                   )),
               IconButton(
@@ -110,20 +113,37 @@ class _SelectlocationState extends State<Selectlocation> {
                 tooltip: 'find place',
                 onPressed: () async {
                   print(textController.text);
-
                   Suggestdata = await searchLocation(textController.text);
+
+                  setState(() {
+                    suggestLocWidget = displayLocationList(Suggestdata);
+                  });
                   print("Suggestdata");
-                  print(Suggestdata?.elementAt(0).display_name);
+                  print(Suggestdata?.elementAt(0).place_name);
                 },
               ),
             ],
           ),
-          Text((() {
-            print("data");
-            // print(Suggestdata != null);
-
-            return "Suggest list";
-          })()),
+          suggestLocWidget
         ]));
+  }
+
+  Widget displayLocationList(List<Suggestlocation>? suggestData) {
+    if (Suggestdata == null) {
+      return const SizedBox.shrink();
+    } else {
+      return Column(
+          children: suggestData!.map((e) => locationText(e)).toList());
+    }
+  }
+
+  InkWell locationText(Suggestlocation data) {
+    return InkWell(
+      onTap: () {
+        Navigator.pop(context, data);
+      },
+      child: Container(
+          height: 50, color: Colors.grey, child: Text(data.place_detail)),
+    );
   }
 }

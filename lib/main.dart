@@ -38,8 +38,9 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreen extends State<MainScreen> {
-  late String lat = "";
-  late String long = "";
+  late String display_place = "V";
+  late String latitude = "";
+  late String longitude = "";
   Airquality? data;
   List<DailyData>? aqi;
   aqicn.Iaqi? iaqi;
@@ -60,11 +61,11 @@ class _MainScreen extends State<MainScreen> {
   Future<void> _initData() async {
     try {
       Position v = await getCurrentLocation();
-      lat = "${v.latitude}";
-      long = "${v.longitude}";
+      latitude = "${v.latitude}";
+      longitude = "${v.longitude}";
 
-      data = await getAirQuality5day(lat, long);
-      var aqicnData = await aqicn.getData(lat, long);
+      data = await getAirQuality5day(latitude, longitude);
+      var aqicnData = await aqicn.getData(latitude, longitude);
       aqi = getDailyData(aqicnData);
       iaqi = aqicnData.iaqi;
       currBody = Forecast(data: data, aqi: aqi, iaqi: iaqi);
@@ -97,20 +98,30 @@ class _MainScreen extends State<MainScreen> {
 
             //make it clikable to set location
             GestureDetector(
-                onTap: () {
-                  const Selectlocation();
-                  // _setLocation();
-                  Navigator.push(
+                onTap: () async {
+                  final chosenLocation = await Navigator.push(
                       context,
-                      MaterialPageRoute<WidgetBuilder>(
-                        builder: (BuildContext context) =>
-                            const Selectlocation(),
+                      MaterialPageRoute(
+                        builder: (context) => const Selectlocation(),
                       ));
+                  print(chosenLocation);
+                  setState(() {
+                    print("data");
+                    display_place = chosenLocation.place_name;
+                    latitude = chosenLocation.lat;
+                    longitude = chosenLocation.lon;
+                  });
                 },
-                child: Text(
-                  "$lat, $long",
-                  textScaleFactor: 0.7,
-                )),
+                child: Column(children: [
+                  Text(
+                    "$display_place",
+                    textScaleFactor: 0.7,
+                  ),
+                  Text(
+                    "$latitude, $longitude",
+                    textScaleFactor: 0.7,
+                  )
+                ])),
           ],
         ),
       ),
