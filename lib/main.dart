@@ -6,6 +6,15 @@ import 'package:app/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:http/http.dart' as http;
+
+import 'package:app/location/selectlocation.dart' as select;
+import 'package:app/location/userposition.dart' as position;
+import 'package:intl/intl.dart';
+
+import '/location/selectlocation.dart';
+// import 'location/selectlocation.dart';
 
 const greyUI = Color.fromRGBO(28, 28, 30, 1);
 
@@ -74,15 +83,28 @@ class _MainScreen extends State<MainScreen> {
               'AirWareness',
               textScaleFactor: 1.2,
             ),
-            Text(
-              "$lat, $long",
-              textScaleFactor: 0.7,
-            )
+
+            //make it clikable to set location
+            GestureDetector(
+                onTap: () {
+                  const Selectlocation();
+                  // _setLocation();
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute<WidgetBuilder>(
+                        builder: (BuildContext context) =>
+                            const Selectlocation(),
+                      ));
+                },
+                child: Text(
+                  "$lat, $long",
+                  textScaleFactor: 0.7,
+                )),
           ],
         ),
       ),
-      body: SingleChildScrollView(
-          child: _widgetOptions.elementAt(_selectedIndex)),
+      body: _widgetOptions.elementAt(_selectedIndex),
+
       bottomNavigationBar: Container(
         color: greyUI,
         child: BottomNavigationBar(
