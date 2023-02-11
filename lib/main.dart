@@ -16,7 +16,7 @@ import 'package:app/location/userposition.dart' as position;
 import 'package:intl/intl.dart';
 
 import '/location/selectlocation.dart';
-// import 'location/selectlocation.dart';
+import 'location/userposition.dart';
 
 const greyUI = Color.fromRGBO(28, 28, 30, 1);
 
@@ -38,9 +38,6 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreen extends State<MainScreen> {
-  late String display_place = "V";
-  late String latitude = "";
-  late String longitude = "";
   Airquality? data;
   List<DailyData>? aqi;
   aqicn.Iaqi? iaqi;
@@ -61,11 +58,13 @@ class _MainScreen extends State<MainScreen> {
   Future<void> _initData() async {
     try {
       Position v = await getCurrentLocation();
-      latitude = "${v.latitude}";
-      longitude = "${v.longitude}";
+      Userposition.latitude = "${v.latitude}";
+      Userposition.longitude = "${v.longitude}";
 
-      data = await getAirQuality5day(latitude, longitude);
-      var aqicnData = await aqicn.getData(latitude, longitude);
+      data = await getAirQuality5day(
+          Userposition.latitude, Userposition.longitude);
+      var aqicnData =
+          await aqicn.getData(Userposition.latitude, Userposition.longitude);
       aqi = getDailyData(aqicnData);
       iaqi = aqicnData.iaqi;
       currBody = Forecast(data: data, aqi: aqi, iaqi: iaqi);
@@ -107,18 +106,19 @@ class _MainScreen extends State<MainScreen> {
                   print(chosenLocation);
                   setState(() {
                     print("data");
-                    display_place = chosenLocation.place_name;
-                    latitude = chosenLocation.lat;
-                    longitude = chosenLocation.lon;
+                    Userposition.display_place = chosenLocation.place_name;
+                    Userposition.latitude = chosenLocation.lat;
+                    Userposition.longitude = chosenLocation.lon;
+                    print(Userposition.display_place);
                   });
                 },
                 child: Column(children: [
                   Text(
-                    "$display_place",
+                    "${Userposition.display_place}",
                     textScaleFactor: 0.7,
                   ),
                   Text(
-                    "$latitude, $longitude",
+                    "${Userposition.latitude}, ${Userposition.longitude}",
                     textScaleFactor: 0.7,
                   )
                 ])),
