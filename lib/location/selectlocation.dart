@@ -10,35 +10,40 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:json_annotation/json_annotation.dart';
 
+import 'userposition.dart';
+
 const greyUI = Color.fromRGBO(28, 28, 30, 1);
 
 class Suggestlocation {
-  final String place_name;
-  final String place_detail;
-
-  final String lat;
-  final String lon;
+  final String name;
+  final String? city;
+  final double lat;
+  final double lon;
+  final double distance;
 
   const Suggestlocation({
-    required this.place_name,
-    required this.place_detail,
+    required this.name,
+    required this.city,
     required this.lat,
     required this.lon,
+    required this.distance,
   });
 
   factory Suggestlocation.fromJson(Map<String, dynamic> json) {
     return Suggestlocation(
-      place_name: json['display_place'] as String,
-      place_detail: json['display_name'] as String,
-      lat: json['lat'] as String,
-      lon: json['lon'] as String,
+      name: json['name'] as String,
+      city: json['city'] == null ? "T" : json['city'] as String,
+      lat: json['lat'] as double,
+      lon: json['lon'] as double,
+      distance: json['distance'] as double,
     );
   }
 }
 
 // A function that converts a response body into a List<Suggestlocation>.
 List<Suggestlocation> parseJson(String responseBody) {
-  final parsed = jsonDecode(responseBody).cast<Map<String, dynamic>>();
+  final parsed =
+      jsonDecode(responseBody)["results"].cast<Map<String, dynamic>>();
 
   return parsed
       .map<Suggestlocation>((json) => Suggestlocation.fromJson(json))
@@ -66,11 +71,18 @@ class _SelectlocationState extends State<Selectlocation> {
 
   Future<List<Suggestlocation>> fetchSuggestlocation(
       String text, String token) async {
+    text = await searchfilter(text);
+
     // https://api.locationiq.com/v1/autocomplete?key=YOUR_ACCESS_TOKEN&q=Empire
-    const base = "https://api.locationiq.com/v1/autocomplete?";
-    String params = "key=$token&countrycodes=th&q=$text";
+    const base = "https://api.geoapify.com/v1/geocode/autocomplete?";
+    String filter = "filter=countrycode:th";
+    String bias =
+        "bias=proximity:${Userposition.real_longitude},${Userposition.real_latitude}|countrycode:th";
+    String format = "format=json";
+    String params = "text=$text&$filter&$bias&$format&apiKey=$token";
     print(base + params);
     final response = await http.get(Uri.parse(base + params));
+    print(jsonDecode(response.body)["results"]);
     if (response.statusCode == 200) {
       return compute(parseJson, response.body);
     } else {
@@ -78,12 +90,24 @@ class _SelectlocationState extends State<Selectlocation> {
     }
   }
 
+  Future<String> searchfilter(String text) async {
+    String resp = text;
+    switch (text) {
+      case "สุเทพ":
+        return "Doi Suthep";
+      case "มช":
+        return "Chiang Mai University";
+    }
+    return resp;
+  }
+
   Future<List<Suggestlocation>> searchLocation(String text) async {
-    var token = dotenv.env["LOCAQ_KEY"];
+    var token = dotenv.env["GEOAPI_KEY"];
     if (token == null) {
-      throw Exception("Please set LOCAQ_KEY in .env file");
+      throw Exception("Please set GEOAPI_KEY in .env file");
     }
     List<Suggestlocation> resp = await fetchSuggestlocation(text, token);
+    print(resp);
 
     return resp;
   }
@@ -92,6 +116,7 @@ class _SelectlocationState extends State<Selectlocation> {
   Widget build(BuildContext context) {
     // return Container(
     return Scaffold(
+        resizeToAvoidBottomInset: false,
         appBar: AppBar(
           title: const Text('เลือกตำแหน่งที่อยู่'),
         ),
@@ -119,7 +144,7 @@ class _SelectlocationState extends State<Selectlocation> {
                     suggestLocWidget = displayLocationList(Suggestdata);
                   });
                   print("Suggestdata");
-                  print(Suggestdata?.elementAt(0).place_name);
+                  print(Suggestdata?.elementAt(0).name);
                 },
               ),
             ],
@@ -138,12 +163,16 @@ class _SelectlocationState extends State<Selectlocation> {
   }
 
   InkWell locationText(Suggestlocation data) {
+    String dis = "${(data.distance / 1000.0).toStringAsFixed(2)} Km";
+
     return InkWell(
       onTap: () {
         Navigator.pop(context, data);
       },
       child: Container(
-          height: 50, color: Colors.grey, child: Text(data.place_detail)),
+          height: 50,
+          color: Colors.grey,
+          child: Text(data.name + data.city! + " : " + dis)),
     );
   }
 }
