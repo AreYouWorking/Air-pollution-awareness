@@ -135,7 +135,7 @@ class _ForecastState extends State<Forecast> {
                     ),
                     Text(
                       widget.aqi![0].text,
-                      textScaleFactor: 2.0,
+                      textScaleFactor: 1.5,
                     )
                   ],
                 ),
@@ -298,7 +298,8 @@ class _ForecastState extends State<Forecast> {
     return TextButton(
         style: TextButton.styleFrom(
           foregroundColor: Colors.white,
-          shape: const StadiumBorder(side: BorderSide(width: 2.0, color: Colors.white)),
+          shape: const StadiumBorder(
+              side: BorderSide(width: 2.0, color: Colors.white)),
         ),
         onPressed: () {
           setState(() {
