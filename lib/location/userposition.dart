@@ -1,7 +1,11 @@
 class Userposition {
-  static String display_place = '';
+  static String display_place = 'V';
   static String latitude = '';
   static String longitude = '';
+
+  // Location Bias  proximity for find place near user
+  static String real_latitude = '';
+  static String real_longitude = '';
 //static
 //static
 //static

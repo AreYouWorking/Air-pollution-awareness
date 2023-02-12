@@ -58,9 +58,20 @@ class _MainScreen extends State<MainScreen> {
   Future<void> _initData() async {
     try {
       Position v = await getCurrentLocation();
+      Userposition.real_latitude = "${v.latitude}";
+      Userposition.real_longitude = "${v.longitude}";
       Userposition.latitude = "${v.latitude}";
       Userposition.longitude = "${v.longitude}";
 
+      forecastupdate();
+      setState(() {});
+    } catch (_) {
+      // TODO: do something if can't fetch gps location
+    }
+  }
+
+  Future<void> forecastupdate() async {
+    try {
       data = await getAirQuality5day(
           Userposition.latitude, Userposition.longitude);
       var aqicnData =
@@ -68,7 +79,6 @@ class _MainScreen extends State<MainScreen> {
       aqi = getDailyData(aqicnData);
       iaqi = aqicnData.iaqi;
       currBody = Forecast(data: data, aqi: aqi, iaqi: iaqi);
-      setState(() {});
     } catch (_) {
       // TODO: do something if can't fetch gps location
     }
@@ -83,7 +93,8 @@ class _MainScreen extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // resizeToAvoidBottomInset: true, // (size themselves to avoid the onscreen keyboard)
+      resizeToAvoidBottomInset:
+          false, // (size themselves to avoid the onscreen keyboard)
       backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: Colors.black,
@@ -106,10 +117,11 @@ class _MainScreen extends State<MainScreen> {
                   print(chosenLocation);
                   setState(() {
                     print("data");
-                    Userposition.display_place = chosenLocation.place_name;
-                    Userposition.latitude = chosenLocation.lat;
-                    Userposition.longitude = chosenLocation.lon;
+                    Userposition.display_place = chosenLocation.name;
+                    Userposition.latitude = chosenLocation.lat.toString();
+                    Userposition.longitude = chosenLocation.lon.toString();
                     print(Userposition.display_place);
+                    forecastupdate();
                   });
                 },
                 child: Column(children: [
