@@ -64,7 +64,6 @@ class _MainScreen extends State<MainScreen> {
       Userposition.longitude = "${v.longitude}";
 
       forecastupdate();
-      setState(() {});
     } catch (_) {
       // TODO: do something if can't fetch gps location
     }
@@ -79,6 +78,7 @@ class _MainScreen extends State<MainScreen> {
       aqi = getDailyData(aqicnData);
       iaqi = aqicnData.iaqi;
       currBody = Forecast(data: data, aqi: aqi, iaqi: iaqi);
+      setState(() {});
     } catch (_) {
       // TODO: do something if can't fetch gps location
     }
