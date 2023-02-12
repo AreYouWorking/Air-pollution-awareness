@@ -5,7 +5,9 @@ import 'package:app/forecast.dart';
 import 'package:app/memory.dart';
 import 'package:app/openmetro/airquality.dart';
 import 'package:app/utils.dart';
+import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
@@ -19,16 +21,25 @@ import '/location/selectlocation.dart';
 import 'location/userposition.dart';
 
 const greyUI = Color.fromRGBO(28, 28, 30, 1);
+List<CameraDescription> cameras = [];
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load();
 
-  runApp(MaterialApp(
-    theme: ThemeData.dark(),
-    home: const MainScreen(),
-    debugShowCheckedModeBanner: false,
-  ));
+  // Fetching available cameras
+  try {
+    cameras = await availableCameras();
+  } on CameraException catch (e) {
+    print('Error in fetching the cameras: $e');
+  }
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+  ]).then((_) => runApp(MaterialApp(
+        theme: ThemeData.dark(),
+        home: const MainScreen(),
+        debugShowCheckedModeBanner: false,
+      )));
 }
 
 class MainScreen extends StatefulWidget {
@@ -44,6 +55,7 @@ class _MainScreen extends State<MainScreen> {
 
   int _selectedIndex = 1;
   Widget currBody = Forecast();
+
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;

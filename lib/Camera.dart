@@ -1,39 +1,165 @@
+import 'dart:async';
+
+import 'package:app/main.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:app/EditPhoto/PhotoEditor.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
-class Camera extends StatefulWidget {
-  final List<CameraDescription> cameras;
-  const Camera({Key? key, required this.cameras}) : super(key: key);
+import 'package:path_provider/path_provider.dart';
 
+class Camera extends StatefulWidget {
   @override
   State<Camera> createState() => _CameraState();
 }
 
-class _CameraState extends State<Camera> {
-  late CameraController controller;
+class _CameraState extends State<Camera> with WidgetsBindingObserver {
+  CameraController? controller;
+
+  // TODO: Implement zoom
+  double _minAvailableZoom = 1.0;
+  double _maxAvailableZoom = 1.0;
+  double _currentZoomLevel = 1.0;
+
+  FlashMode? _currentFlashMode;
+  bool _isRearCameraSelected = true;
+
   final ImagePicker _picker = ImagePicker();
   dynamic _pickImageError;
 
-  Future<void> _onImageTaken() async {
+  void onNewCameraSelected(CameraDescription cameraDescription) async {
+    final CameraController? oldController = controller;
+    if (oldController != null) {
+      // `controller` needs to be set to null before getting disposed,
+      // to avoid a race condition when we use the controller that is being
+      // disposed. This happens when camera permission dialog shows up,
+      // which triggers `didChangeAppLifecycleState`, which disposes and
+      // re-creates the controller.
+      controller = null;
+      await oldController.dispose();
+    }
+    // Instantiate the camera controller
+    final CameraController cameraController = CameraController(
+        cameraDescription, ResolutionPreset.max,
+        imageFormatGroup: ImageFormatGroup.jpeg);
+
+    // Replace with the new controller
+    if (mounted) {
+      setState(() {
+        controller = cameraController;
+      });
+    }
+
+    // Update UI if controller updated
+    cameraController.addListener(() {
+      if (mounted) setState(() {});
+    });
+
+    // Initialize controller
     try {
-      final image = await controller.takePicture();
-      if (!mounted) return;
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (context) => PhotoEditor(image: File(image.path))),
-      );
-    } catch (e) {
-      print(e);
+      await cameraController.initialize();
+      await cameraController
+          .lockCaptureOrientation(DeviceOrientation.portraitUp);
+      cameraController
+          .getMaxZoomLevel()
+          .then((value) => _maxAvailableZoom = value);
+
+      cameraController
+          .getMinZoomLevel()
+          .then((value) => _minAvailableZoom = value);
+
+      setState(() {
+        _currentFlashMode = controller!.value.flashMode;
+      });
+    } on CameraException catch (e) {
+      switch (e.code) {
+        case 'CameraAccessDenied':
+          // Handle access errors here.
+          break;
+        default:
+          // Handle other errors here.
+          print('Error initializing camera: $e');
+          break;
+      }
     }
   }
 
-  Future<void> _onImageLibPressed(ImageSource source) async {
+  // Running the camera is a memory-hungry task.
+  // This method handles freeing up the resources.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    final CameraController? cameraController = controller;
+
+    // App state changed before we got the chance to initialize.
+    if (cameraController == null || !cameraController.value.isInitialized) {
+      return;
+    }
+
+    if (state == AppLifecycleState.inactive) {
+      // Free up memory when camera is inactive
+      cameraController.dispose();
+    } else if (state == AppLifecycleState.resumed) {
+      // Reinitialize the camera with same properties
+      onNewCameraSelected(cameraController.description);
+    }
+  }
+
+  @override
+  void initState() {
+    // Hide the status bar
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
+        overlays: [SystemUiOverlay.bottom]);
+
+    // Index 0 of cameras list — back camera
+    // Index 1 of cameras list — front camera
+    onNewCameraSelected(cameras[0]);
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
+        overlays: SystemUiOverlay.values);
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  Future<void> takePicture() async {
+    final CameraController? cameraController = controller;
+    if (cameraController!.value.isTakingPicture) {
+      // A capture is already pending, do nothing.
+      return;
+    }
+
     try {
-      final XFile? pickedFile = await _picker.pickImage(source: source);
+      XFile rawImage = await cameraController.takePicture();
+      File imageFile = File(rawImage.path);
+
+      int currentUnix = DateTime.now().millisecondsSinceEpoch;
+      final directory = await getApplicationDocumentsDirectory();
+      String fileFormat = imageFile.path.split('.').last;
+
+      await imageFile.copy(
+        '${directory.path}/$currentUnix.$fileFormat',
+      );
+
+      if (!mounted) return;
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => PhotoEditor(image: imageFile)),
+      );
+    } catch (e) {
+      print('Error occurred while taking picture: $e');
+    }
+  }
+
+  Future<void> _onImageLibPressed() async {
+    try {
+      final XFile? pickedFile =
+          await _picker.pickImage(source: ImageSource.gallery);
       if (pickedFile != null) {
         if (!mounted) return;
         Navigator.push(
@@ -48,6 +174,7 @@ class _CameraState extends State<Camera> {
       });
     }
 
+    // TODO: Get geolocation from EXIF
     // if (imageFile != null) {
     //   final data = await readExifFromBytes(imageFile!.readAsBytesSync());
     //   if (data.isEmpty) {
@@ -61,82 +188,136 @@ class _CameraState extends State<Camera> {
     // }
   }
 
-  @override
-  void initState() {
-    super.initState();
-
-    controller = CameraController(widget.cameras[0], ResolutionPreset.max);
-    controller.initialize().then((_) {
-      if (!mounted) {
-        return;
-      }
-      setState(() {});
-    }).catchError((Object e) {
-      if (e is CameraException) {
-        switch (e.code) {
-          case 'CameraAccessDenied':
-            // Handle access errors here.
-            break;
-          default:
-            // Handle other errors here.
-            break;
-        }
-      }
+  void flipCamera() async {
+    onNewCameraSelected(
+      cameras[_isRearCameraSelected ? 0 : 1],
+    );
+    setState(() {
+      _isRearCameraSelected = !_isRearCameraSelected;
     });
   }
 
   @override
-  void dispose() {
-    controller.dispose();
-    super.dispose();
+  Widget build(BuildContext context) {
+    final CameraController? cameraController = controller;
+
+    return Scaffold(
+        body: cameraController == null || !cameraController.value.isInitialized
+            ? Container()
+            : Stack(children: <Widget>[
+                AspectRatio(
+                  aspectRatio: 1 / cameraController.value.aspectRatio,
+                  child: cameraController.buildPreview(),
+                ),
+                Align(
+                    alignment: AlignmentDirectional.topCenter,
+                    child: Container(
+                        padding:
+                            const EdgeInsets.fromLTRB(0.0, 24.0, 0.0, 24.0),
+                        color: const Color.fromRGBO(0, 0, 0, 0.2),
+                        child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: <Widget>[
+                              getFlashButton(),
+                              getPicRatioButton()
+                            ]))),
+                Align(
+                    alignment: AlignmentDirectional.bottomCenter,
+                    child: Container(
+                        padding:
+                            const EdgeInsets.fromLTRB(0.0, 24.0, 0.0, 24.0),
+                        color: const Color.fromRGBO(0, 0, 0, 0.2),
+                        child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: <Widget>[
+                              getImagePickerButton(),
+                              getCaptureButton(),
+                              getFlipCameraButton()
+                            ]))),
+              ]));
   }
 
-  @override
-  Widget build(BuildContext context) {
-    if (!controller.value.isInitialized) {
-      return Container();
+  Widget getFlashButton() {
+    Widget button;
+    if (_currentFlashMode == FlashMode.off) {
+      button = const Icon(Icons.flash_off, size: 32);
+    } else if (_currentFlashMode == FlashMode.auto) {
+      button = const Icon(Icons.flash_auto, size: 32);
+    } else if (_currentFlashMode == FlashMode.always) {
+      button = const Icon(Icons.flash_on, size: 32);
+    } else {
+      button = const Icon(Icons.flashlight_on, size: 32);
     }
-    return Scaffold(
-        body: Container(
-          color: Colors.black,
-          height: double.infinity,
-          width: double.infinity,
-          child: CameraPreview(controller),
-        ),
-        floatingActionButton: Column(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: <Widget>[
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: FloatingActionButton(
-                  backgroundColor: Colors.red,
-                  foregroundColor: Colors.white,
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: const Icon(Icons.arrow_back)),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: FloatingActionButton(
-                  backgroundColor: Colors.red,
-                  foregroundColor: Colors.white,
-                  onPressed: () {
-                    _onImageLibPressed(ImageSource.gallery);
-                  },
-                  child: const Icon(Icons.photo_library)),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: FloatingActionButton(
-                  backgroundColor: Colors.red,
-                  foregroundColor: Colors.white,
-                  onPressed: () {
-                    _onImageTaken();
-                  },
-                  child: const Icon(Icons.camera_alt)),
-            ),
-          ],
-        ));
+
+    return InkWell(
+      onTap: () async {
+        FlashMode newMode;
+        if (_currentFlashMode == FlashMode.off) {
+          newMode = FlashMode.auto;
+        } else if (_currentFlashMode == FlashMode.auto) {
+          newMode = FlashMode.always;
+        } else if (_currentFlashMode == FlashMode.always) {
+          newMode = FlashMode.torch;
+        } else {
+          newMode = FlashMode.off;
+        }
+
+        setState(() {
+          _currentFlashMode = newMode;
+        });
+        await controller!.setFlashMode(newMode);
+      },
+      child: button,
+    );
+  }
+
+  // TODO: Implement Aspect Ratio Selection
+  Widget getPicRatioButton() {
+    return const InkWell(
+        child: Icon(
+      Icons.aspect_ratio,
+      size: 32,
+    ));
+  }
+
+  Widget getImagePickerButton() {
+    return InkWell(
+      onTap: () {
+        _onImageLibPressed();
+      },
+      child: const Icon(
+        Icons.photo,
+        size: 60,
+      ),
+    );
+  }
+
+  Widget getCaptureButton() {
+    return InkWell(
+      onTap: () {
+        takePicture();
+      },
+      child: Stack(
+        alignment: Alignment.center,
+        children: const [
+          Icon(Icons.circle, color: Colors.white38, size: 90),
+          Icon(Icons.circle, color: Colors.white, size: 80),
+        ],
+      ),
+    );
+  }
+
+  Widget getFlipCameraButton() {
+    return InkWell(
+        onTap: () {
+          flipCamera();
+        },
+        child: Stack(alignment: Alignment.center, children: const [
+          Icon(Icons.circle, color: Color(0xFF323232), size: 60),
+          Icon(
+            Icons.autorenew,
+            size: 40,
+          ),
+        ]));
   }
 }

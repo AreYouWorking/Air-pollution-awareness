@@ -21,12 +21,11 @@ class _MemoryState extends State<Memory> {
           InkWell(
               borderRadius: BorderRadius.circular(20),
               onTap: () async {
-                List<CameraDescription> cameras = await availableCameras();
                 if (!mounted) return;
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => Camera(cameras: cameras)),
+                      builder: (context) => Camera()),
                 );
               },
               child: Container(
