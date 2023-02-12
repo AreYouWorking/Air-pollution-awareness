@@ -77,7 +77,7 @@ class _SelectlocationState extends State<Selectlocation> {
     const base = "https://api.geoapify.com/v1/geocode/autocomplete?";
     String filter = "filter=countrycode:th";
     String bias =
-        "bias=proximity:${Userposition.real_longitude},${Userposition.real_latitude}|countrycode:th";
+        "bias=proximity:${Userposition.proximity_longitude},${Userposition.proximity_latitude}|countrycode:th";
     String format = "format=json";
     String params = "text=$text&$filter&$bias&$format&apiKey=$token";
     print(base + params);

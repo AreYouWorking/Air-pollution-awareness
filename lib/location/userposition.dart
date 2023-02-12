@@ -4,8 +4,8 @@ class Userposition {
   static String longitude = '';
 
   // Location Bias  proximity for find place near user
-  static String real_latitude = '';
-  static String real_longitude = '';
+  static String proximity_latitude = '';
+  static String proximity_longitude = '';
 //static
 //static
 //static

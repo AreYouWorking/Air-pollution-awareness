@@ -58,8 +58,8 @@ class _MainScreen extends State<MainScreen> {
   Future<void> _initData() async {
     try {
       Position v = await getCurrentLocation();
-      Userposition.real_latitude = "${v.latitude}";
-      Userposition.real_longitude = "${v.longitude}";
+      Userposition.proximity_latitude = "${v.latitude}";
+      Userposition.proximity_longitude = "${v.longitude}";
       Userposition.latitude = "${v.latitude}";
       Userposition.longitude = "${v.longitude}";
 
