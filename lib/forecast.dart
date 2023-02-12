@@ -82,6 +82,7 @@ class Forecast extends StatefulWidget {
 
 class _ForecastState extends State<Forecast> {
   int hourlyCurrIdx = 0;
+  var pressedBtns = [true, false, false];
 
   @override
   Widget build(BuildContext context) {
@@ -213,7 +214,7 @@ class _ForecastState extends State<Forecast> {
     for (var v in aqi) {
       dailyCards.add(dailyCard(v));
     }
-    
+
     return ListView(
       scrollDirection: Axis.horizontal,
       children: dailyCards,
@@ -223,7 +224,7 @@ class _ForecastState extends State<Forecast> {
   Widget dailyCard(DailyData data) {
     final now = DateTime.now();
     Text day = const Text("Today");
-    
+
     if (data.datetime.isAfter(now)) {
       day = Text(DateFormat.EEEE().format(data.datetime));
     }
@@ -300,14 +301,18 @@ class _ForecastState extends State<Forecast> {
 
   Widget hourlyButton(int idx, String text) {
     return TextButton(
-        style: TextButton.styleFrom(
-          foregroundColor: Colors.white,
-          shape: const StadiumBorder(
-              side: BorderSide(width: 2.0, color: Colors.white)),
-        ),
+        style: pressedBtns[idx]
+            ? TextButton.styleFrom(
+                foregroundColor: Colors.white,
+                shape: const StadiumBorder(
+                    side: BorderSide(width: 2.0, color: Colors.white)),
+              )
+            : TextButton.styleFrom(foregroundColor: Colors.white),
         onPressed: () {
           setState(() {
             hourlyCurrIdx = idx;
+            pressedBtns.setAll(0, [false, false, false]);
+            pressedBtns[idx] = !pressedBtns[idx];
           });
         },
         child: Text(text));
