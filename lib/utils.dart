@@ -1,5 +1,9 @@
 // get current location using Geolocator
+import 'dart:convert';
+
+import 'package:app/location/userposition.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:http/http.dart' as http;
 
 Future<Position> getCurrentLocation() async {
   bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
@@ -19,4 +23,14 @@ Future<Position> getCurrentLocation() async {
         'Location permissions are permanently denied, we cannot request location');
   }
   return await Geolocator.getCurrentPosition();
+}
+
+Future<String> getCurrentPlaceName() async {
+  String base = "https://api.bigdatacloud.net/data/reverse-geocode-client?";
+  String param =
+      "latitude=${Userposition.latitude.toString()}&longitude=${Userposition.longitude.toString()}&localityLanguage=en";
+  final response = await http.get(Uri.parse(base + param));
+
+  final parsed = jsonDecode(response.body)["city"];
+  return parsed;
 }

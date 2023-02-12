@@ -63,6 +63,7 @@ class _MainScreen extends State<MainScreen> {
       Userposition.latitude = "${v.latitude}";
       Userposition.longitude = "${v.longitude}";
 
+      Userposition.display_place = await getCurrentPlaceName();
       forecastupdate();
     } catch (_) {
       // TODO: do something if can't fetch gps location
