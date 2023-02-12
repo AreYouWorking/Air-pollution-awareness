@@ -32,17 +32,17 @@ class ChartData {
 
 DailyData fromAqi(int aqi, DateTime datetime) {
   if (aqi <= 50) {
-    return DailyData(aqiColor[0], "😍", aqi, "Good", datetime);
+    return DailyData(aqiColor[0], "😍", aqi, "ดีต่อสุขภาพ", datetime);
   } else if (aqi <= 100) {
-    return DailyData(aqiColor[1], "😐", aqi, "Moderate", datetime);
+    return DailyData(aqiColor[1], "😐", aqi, "ปานกลาง", datetime);
   } else if (aqi <= 150) {
-    return DailyData(aqiColor[2], "🙁", aqi, "Unhealthy for SG", datetime);
+    return DailyData(aqiColor[2], "🙁", aqi, "แย่ต่อกลุ่มเสี่ยง", datetime);
   } else if (aqi <= 200) {
-    return DailyData(aqiColor[3], "☹️", aqi, "Unhealthy", datetime);
+    return DailyData(aqiColor[3], "😨", aqi, "แย่ต่อสุขภาพ", datetime);
   } else if (aqi <= 300) {
-    return DailyData(aqiColor[4], "😨", aqi, "Very Unhealthy", datetime);
+    return DailyData(aqiColor[4], "😱", aqi, "แย่ต่อสุขภาพมาก", datetime);
   }
-  return DailyData(aqiColor[5], "😱", aqi, "Hazardous", datetime);
+  return DailyData(aqiColor[5], "😵", aqi, "อันตรายต่อสุขภาพมาก", datetime);
 }
 
 List<DailyData> getDailyData(aqicn.Data data) {
@@ -167,7 +167,29 @@ class _ForecastState extends State<Forecast> {
     if (widget.aqicnData == null) {
       return [Container()];
     }
+    var temp = widget.aqicnData!.iaqi.t.v;
+    var tempStr = "";
+    if (temp < 20) {
+      tempStr = "หนาว";
+    } else if (temp < 25) {
+      tempStr = "อบอุ่น";
+    } else if (temp < 27) {
+      tempStr = "ร้อน";
+    } else {
+      tempStr = "ร้อนมาก";
+    }
 
+    var wind = widget.aqicnData!.iaqi.w.v;
+    var windStr = "";
+    if (wind < 5) {
+      windStr = "ลมสงบ";
+    } else if (wind < 10) {
+      windStr = "ลมเล็กน้อย";
+    } else if (wind < 15) {
+      windStr = "ลมปานกลาง";
+    } else {
+      windStr = "ลมแรง";
+    }
     return [
       Expanded(
         child: Column(
@@ -176,7 +198,7 @@ class _ForecastState extends State<Forecast> {
               "5 🥵",
               textScaleFactor: 1.5,
             ),
-            Text("Hotspot")
+            Text("จุดความร้อน")
           ],
         ),
       ),
@@ -187,7 +209,7 @@ class _ForecastState extends State<Forecast> {
               "${widget.aqicnData!.iaqi.w.v} Km/h",
               textScaleFactor: 1.5,
             ),
-            Text("Not Windy")
+            Text("$windStr")
           ],
         ),
       ),
@@ -198,7 +220,7 @@ class _ForecastState extends State<Forecast> {
               "${widget.aqicnData!.iaqi.t.v} °C",
               textScaleFactor: 1.5,
             ),
-            Text("Hot")
+            Text('$tempStr')
           ],
         ),
       )
@@ -273,15 +295,14 @@ class _ForecastState extends State<Forecast> {
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            hourlyButton(0, "Today"),
-            hourlyButton(1, DateFormat.EEEE().format(nextDay)),
-            hourlyButton(2, DateFormat.EEEE().format(next2Day)),
-          ],
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              hourlyButton(0, "Today"),
+              hourlyButton(1, DateFormat.EEEE().format(nextDay)),
+              hourlyButton(2, DateFormat.EEEE().format(next2Day)),
+            ],
+          ),
         ),
-        ),
-        
         Expanded(
           child: chart.SfCartesianChart(
             primaryXAxis: chart.DateTimeAxis(
