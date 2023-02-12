@@ -27,6 +27,7 @@ Future<void> main() async {
   runApp(MaterialApp(
     theme: ThemeData.dark(),
     home: const MainScreen(),
+    debugShowCheckedModeBanner: false,
   ));
 }
 
