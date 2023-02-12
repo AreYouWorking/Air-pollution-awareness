@@ -125,11 +125,11 @@ class _MainScreen extends State<MainScreen> {
                 },
                 child: Column(children: [
                   Text(
-                    "${Userposition.display_place}",
+                    Userposition.display_place,
                     textScaleFactor: 0.7,
                   ),
                   Text(
-                    "${Userposition.latitude}, ${Userposition.longitude}",
+                    "${Userposition.latitude.isNotEmpty ? Userposition.latitude.substring(0, 7) : Userposition.latitude}, ${Userposition.longitude.isNotEmpty ? Userposition.longitude.substring(0, 7) : Userposition.longitude}",
                     textScaleFactor: 0.7,
                   )
                 ])),
@@ -142,12 +142,12 @@ class _MainScreen extends State<MainScreen> {
         child: BottomNavigationBar(
           items: const <BottomNavigationBarItem>[
             BottomNavigationBarItem(
-                icon: Icon(Icons.camera_alt),
-                label: 'camera',
+                icon: Icon(Icons.camera_alt_outlined),
+                label: 'Camera',
                 backgroundColor: greyUI),
             BottomNavigationBarItem(
                 icon: Icon(Icons.filter_drama),
-                label: 'forecast',
+                label: 'Forecast',
                 backgroundColor: greyUI)
           ],
           selectedItemColor: Colors.white,
