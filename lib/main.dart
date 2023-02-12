@@ -39,8 +39,7 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreen extends State<MainScreen> {
   Airquality? data;
-  List<DailyData>? aqi;
-  aqicn.Iaqi? iaqi;
+  aqicn.Data? aqicnData;
 
   int _selectedIndex = 1;
   Widget currBody = Forecast();
@@ -50,7 +49,8 @@ class _MainScreen extends State<MainScreen> {
       if (index == 0) {
         currBody = const Memory();
       } else {
-        currBody = Forecast(data: data, aqi: aqi, iaqi: iaqi);
+        currBody = Forecast(data: data, aqicnData: aqicnData);
+        setState(() {});
       }
     });
   }
@@ -74,11 +74,9 @@ class _MainScreen extends State<MainScreen> {
     try {
       data = await getAirQuality5day(
           Userposition.latitude, Userposition.longitude);
-      var aqicnData =
+      aqicnData =
           await aqicn.getData(Userposition.latitude, Userposition.longitude);
-      aqi = getDailyData(aqicnData);
-      iaqi = aqicnData.iaqi;
-      currBody = Forecast(data: data, aqi: aqi, iaqi: iaqi);
+      currBody = Forecast(data: data, aqicnData: aqicnData);
       setState(() {});
     } catch (_) {
       // TODO: do something if can't fetch gps location

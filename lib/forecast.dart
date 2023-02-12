@@ -1,7 +1,6 @@
 import 'package:app/openmetro/airquality.dart';
 import 'package:app/aqicn/geofeed.dart' as aqicn;
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_charts/charts.dart' as chart;
 
@@ -20,8 +19,9 @@ class DailyData {
   String emoji;
   int aqi;
   String text;
+  DateTime datetime;
 
-  DailyData(this.color, this.emoji, this.aqi, this.text);
+  DailyData(this.color, this.emoji, this.aqi, this.text, this.datetime);
 }
 
 class ChartData {
@@ -30,37 +30,31 @@ class ChartData {
   ChartData(this.x, this.y);
 }
 
-// maybe we can use tuple instead of List ?
+DailyData fromAqi(int aqi, DateTime datetime) {
+  if (aqi <= 50) {
+    return DailyData(aqiColor[0], "😍", aqi, "Good", datetime);
+  } else if (aqi <= 100) {
+    return DailyData(aqiColor[1], "😐", aqi, "Moderate", datetime);
+  } else if (aqi <= 150) {
+    return DailyData(aqiColor[2], "🙁", aqi, "Unhealthy for SG", datetime);
+  } else if (aqi <= 200) {
+    return DailyData(aqiColor[3], "☹️", aqi, "Unhealthy", datetime);
+  } else if (aqi <= 300) {
+    return DailyData(aqiColor[4], "😨", aqi, "Very Unhealthy", datetime);
+  }
+  return DailyData(aqiColor[5], "😱", aqi, "Hazardous", datetime);
+}
+
 List<DailyData> getDailyData(aqicn.Data data) {
-  List<int> aqis = [data.aqi];
   var now = DateTime.now();
-  var i = 0;
+  List<DailyData> result = [fromAqi(data.aqi, now)];
+  // following this scale https://aqicn.org/scale/
   for (var v in data.forecast.daily.pm25) {
-    if (i > 1) break;
-    if (DateTime.parse(v.day).isAfter(now)) {
-      aqis.add(v.avg);
-      i += 1;
+    var datetime = DateTime.parse(v.day);
+    if (datetime.isAfter(now)) {
+      result.add(fromAqi(v.avg, datetime));
     }
   }
-
-  List<DailyData> result = [];
-  // follwing this scale https://aqicn.org/scale/
-  for (var aqi in aqis) {
-    if (aqi <= 50) {
-      result.add(DailyData(aqiColor[0], "😀", aqi, "Good"));
-    } else if (aqi <= 100) {
-      result.add(DailyData(aqiColor[1], "🙂", aqi, "Moderate"));
-    } else if (aqi <= 150) {
-      result.add(DailyData(aqiColor[2], "😷", aqi, "Unhealthy for SG"));
-    } else if (aqi <= 200) {
-      result.add(DailyData(aqiColor[3], "😷", aqi, "Unhealthy"));
-    } else if (aqi <= 300) {
-      result.add(DailyData(aqiColor[4], "😵", aqi, "Very Unhealthy"));
-    } else {
-      result.add(DailyData(aqiColor[5], "😡", aqi, "Hazardous"));
-    }
-  }
-
   return result;
 }
 
@@ -78,10 +72,9 @@ List<List<ChartData>> getHourlyData(Airquality data) {
 
 class Forecast extends StatefulWidget {
   Airquality? data;
-  List<DailyData>? aqi;
-  aqicn.Iaqi? iaqi;
+  aqicn.Data? aqicnData;
 
-  Forecast({super.key, this.data, this.aqi, this.iaqi});
+  Forecast({super.key, this.data, this.aqicnData});
 
   @override
   State<Forecast> createState() => _ForecastState();
@@ -92,25 +85,33 @@ class _ForecastState extends State<Forecast> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(left: 40, top: 20, right: 40, bottom: 20),
-      child: Column(
-        children: <Widget>[
-          Expanded(
-              child: infoCard(
-                  "Today", const Color.fromRGBO(255, 77, 0, 1), today())),
-          Expanded(child: infoCard("Daily", greyUI, daily())),
-          Expanded(child: infoCard("Hourly", greyUI, hourly())),
-        ],
+    return RefreshIndicator(
+      onRefresh: () async {
+        // refetch ?
+      },
+      child: SingleChildScrollView(
+        child: Container(
+          margin:
+              const EdgeInsets.only(left: 40, top: 20, right: 40, bottom: 20),
+          child: Column(
+            children: [
+              infoCard(
+                  "Today", const Color.fromRGBO(255, 77, 0, 1), 200, today()),
+              infoCard("Daily", greyUI, 180, daily()),
+              infoCard("Hourly", greyUI, 260, hourly()),
+            ],
+          ),
+        ),
       ),
     );
   }
 
   Widget today() {
-    if (widget.aqi == null) {
+    if (widget.aqicnData == null) {
       return Container();
     }
 
+    var aqi = getDailyData(widget.aqicnData!);
     return Column(children: [
       Expanded(
         flex: 3,
@@ -118,7 +119,7 @@ class _ForecastState extends State<Forecast> {
           children: [
             Expanded(
               child: Text(
-                widget.aqi![0].emoji,
+                aqi[0].emoji,
                 textScaleFactor: 3.0,
                 textAlign: TextAlign.center,
               ),
@@ -130,11 +131,11 @@ class _ForecastState extends State<Forecast> {
                 child: Column(
                   children: [
                     Text(
-                      "AQI ${widget.aqi![0].aqi}",
+                      "AQI ${aqi[0].aqi}",
                       textScaleFactor: 2.0,
                     ),
                     Text(
-                      widget.aqi![0].text,
+                      aqi[0].text,
                       textScaleFactor: 1.5,
                     )
                   ],
@@ -162,7 +163,7 @@ class _ForecastState extends State<Forecast> {
   }
 
   List<Widget> todayLower() {
-    if (widget.iaqi == null) {
+    if (widget.aqicnData == null) {
       return [Container()];
     }
 
@@ -182,7 +183,7 @@ class _ForecastState extends State<Forecast> {
         child: Column(
           children: [
             Text(
-              "${widget.iaqi!.w.v} Km/h",
+              "${widget.aqicnData!.iaqi.w.v} Km/h",
               textScaleFactor: 1.5,
             ),
             Text("Not Windy")
@@ -193,7 +194,7 @@ class _ForecastState extends State<Forecast> {
         child: Column(
           children: [
             Text(
-              "${widget.iaqi!.t.v} °C",
+              "${widget.aqicnData!.iaqi.t.v} °C",
               textScaleFactor: 1.5,
             ),
             Text("Hot")
@@ -204,52 +205,55 @@ class _ForecastState extends State<Forecast> {
   }
 
   Widget daily() {
-    if (widget.aqi == null) {
+    if (widget.aqicnData == null) {
       return Container();
     }
-    final now = DateTime.now();
-    final nextDay = now.add(const Duration(days: 1));
-    final next2Day = now.add(const Duration(days: 2));
-    return Row(
-      children: [
-        dailyCard(widget.aqi![0], "Today"),
-        dailyCard(widget.aqi![1], DateFormat.EEEE().format(nextDay)),
-        dailyCard(widget.aqi![2], DateFormat.EEEE().format(next2Day))
-      ],
+    var aqi = getDailyData(widget.aqicnData!);
+    List<Widget> dailyCards = [];
+    for (var v in aqi) {
+      dailyCards.add(dailyCard(v));
+    }
+    
+    return ListView(
+      scrollDirection: Axis.horizontal,
+      children: dailyCards,
     );
   }
 
-  Expanded dailyCard(DailyData data, String day) {
-    return Expanded(
-      child: Container(
-        margin: const EdgeInsets.all(10),
-        child: Column(
-          children: [
-            Text(day),
-            Expanded(
-              child: Container(
-                margin: const EdgeInsets.only(top: 10),
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                    color: data.color,
-                    borderRadius: BorderRadius.circular(10.0)),
-                child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        data.emoji,
-                        textScaleFactor: 1.4,
-                      ),
-                      const SizedBox(
-                        height: 5,
-                      ),
-                      Text("AQI ${data.aqi}"),
-                      Text(data.text)
-                    ]),
-              ),
+  Widget dailyCard(DailyData data) {
+    final now = DateTime.now();
+    Text day = const Text("Today");
+    
+    if (data.datetime.isAfter(now)) {
+      day = Text(DateFormat.EEEE().format(data.datetime));
+    }
+    return Container(
+      margin: const EdgeInsets.all(10),
+      child: Column(
+        children: [
+          day,
+          Expanded(
+            child: Container(
+              margin: const EdgeInsets.only(top: 10),
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                  color: data.color, borderRadius: BorderRadius.circular(10.0)),
+              child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      data.emoji,
+                      textScaleFactor: 1.4,
+                    ),
+                    const SizedBox(
+                      height: 5,
+                    ),
+                    Text("AQI ${data.aqi}"),
+                    Text(data.text)
+                  ]),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -309,8 +313,9 @@ class _ForecastState extends State<Forecast> {
         child: Text(text));
   }
 
-  Container infoCard(String text, Color color, Widget info) {
+  Container infoCard(String text, Color color, double height, Widget info) {
     return Container(
+      height: height,
       margin: const EdgeInsets.only(bottom: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
