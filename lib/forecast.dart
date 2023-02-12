@@ -267,17 +267,31 @@ class _ForecastState extends State<Forecast> {
     final now = DateTime.now();
     final nextDay = now.add(const Duration(days: 1));
     final next2Day = now.add(const Duration(days: 2));
+    final next3Day = now.add(const Duration(days: 3));
+    final next4Day = now.add(const Duration(days: 4));
+    final next5Day = now.add(const Duration(days: 5));
+    final next6Day = now.add(const Duration(days: 6));
+    final next7Day = now.add(const Duration(days: 7));
     var datasrc = getHourlyData(widget.data!);
     return Column(
       children: [
-        Row(
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             hourlyButton(0, "Today"),
             hourlyButton(1, DateFormat.EEEE().format(nextDay)),
             hourlyButton(2, DateFormat.EEEE().format(next2Day)),
+            hourlyButton(3, DateFormat.EEEE().format(next3Day)),
+            hourlyButton(4, DateFormat.EEEE().format(next4Day)),
+            hourlyButton(5, DateFormat.EEEE().format(next5Day)),
+            hourlyButton(6, DateFormat.EEEE().format(next6Day)),
+            hourlyButton(7, DateFormat.EEEE().format(next7Day)),
           ],
         ),
+        ),
+        
         Expanded(
           child: chart.SfCartesianChart(
             primaryXAxis: chart.DateTimeAxis(
