@@ -117,7 +117,9 @@ class _SelectlocationState extends State<Selectlocation> {
     // return Container(
     return Scaffold(
         resizeToAvoidBottomInset: false,
+        backgroundColor: Colors.black,
         appBar: AppBar(
+          backgroundColor: Colors.black,
           title: const Text('เลือกตำแหน่งที่อยู่'),
         ),
         body: Column(children: [
@@ -126,11 +128,14 @@ class _SelectlocationState extends State<Selectlocation> {
             children: [
               Expanded(
                   flex: 2,
-                  child: TextField(
-                    controller: textController,
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      hintText: 'Search place',
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 5, 0, 5),
+                    child: TextField(
+                      controller: textController,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        hintText: 'Search place',
+                      ),
                     ),
                   )),
               IconButton(
@@ -170,9 +175,14 @@ class _SelectlocationState extends State<Selectlocation> {
         Navigator.pop(context, data);
       },
       child: Container(
+          margin: const EdgeInsets.fromLTRB(0, 20, 0, 0),
           height: 50,
-          color: Colors.grey,
-          child: Text(data.name + data.city! + " : " + dis)),
+          width: double.infinity,
+          color: Colors.black,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(32, 16, 16, 16),
+            child: Text("${data.name}${data.city!} : $dis"),
+          )),
     );
   }
 }
