@@ -291,7 +291,8 @@ class _CameraState extends State<Camera> with WidgetsBindingObserver {
             Align(
                 alignment: AlignmentDirectional.topCenter,
                 child: Container(
-                    padding: const EdgeInsets.all(16.0),
+                    padding: const EdgeInsets.fromLTRB(24.0, 8.0, 24.0, 8.0),
+                    color: const Color.fromRGBO(0, 0, 0, 0.2),
                     child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: <Widget>[
@@ -341,7 +342,11 @@ class _CameraState extends State<Camera> with WidgetsBindingObserver {
     } else if (_currentFlashMode == FlashMode.auto) {
       button = const Icon(Icons.flash_auto, size: 32);
     } else if (_currentFlashMode == FlashMode.always) {
-      button = const Icon(Icons.flash_on, size: 32);
+      button = const Icon(
+        Icons.flash_on,
+        size: 32,
+        color: Colors.amber,
+      );
     } else {
       button = const Icon(Icons.flash_off, size: 32);
     }
