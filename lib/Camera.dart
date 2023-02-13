@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:app/EditPhoto/PhotoEditor.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:image/image.dart' as IMG;
 import 'dart:io';
 
 import 'package:path_provider/path_provider.dart';
@@ -142,18 +143,37 @@ class _CameraState extends State<Camera> with WidgetsBindingObserver {
       final directory = await getApplicationDocumentsDirectory();
       String fileFormat = imageFile.path.split('.').last;
 
-      await imageFile.copy(
+      IMG.Image cropped = await cropPortraitImage(imageFile, 1.0, 1.0);
+      var jpg = IMG.encodeJpg(cropped);
+      File croppedFile = await File(
         '${directory.path}/$currentUnix.$fileFormat',
-      );
+      ).writeAsBytes(jpg);
 
       if (!mounted) return;
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => PhotoEditor(image: imageFile)),
+        MaterialPageRoute(
+            builder: (context) => PhotoEditor(image: croppedFile)),
       );
     } catch (e) {
       print('Error occurred while taking picture: $e');
     }
+  }
+
+  Future<IMG.Image> cropPortraitImage(
+      File imageFile, double widthRatio, double heightRatio) async {
+    var bytes = await imageFile.readAsBytes();
+    IMG.Image? src = IMG.decodeImage(bytes);
+
+    var cropWidth = src!.width;
+    var cropHeight = (src.width / widthRatio) * heightRatio;
+    int offsetX = 0;
+    int offsetY = (src.height ~/ 2) - (cropHeight ~/ 2);
+
+    IMG.Image destImage = IMG.copyCrop(src,
+        x: offsetX, y: offsetY, width: cropWidth, height: cropHeight.round());
+
+    return destImage;
   }
 
   Future<void> _onImageLibPressed() async {
@@ -201,40 +221,62 @@ class _CameraState extends State<Camera> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     final CameraController? cameraController = controller;
 
-    return Scaffold(
-        body: cameraController == null || !cameraController.value.isInitialized
-            ? Container()
-            : Stack(children: <Widget>[
-                AspectRatio(
-                  aspectRatio: 1 / cameraController.value.aspectRatio,
-                  child: cameraController.buildPreview(),
+    if (cameraController == null || !cameraController.value.isInitialized) {
+      return Scaffold(body: Container());
+    } else {
+      // get screen size
+      final size = MediaQuery.of(context).size;
+
+      return Scaffold(
+          body: Stack(children: <Widget>[
+        Transform.scale(
+          scale: 1.0,
+          child: AspectRatio(
+            aspectRatio: 3 / 4,
+            child: ClipRect(
+              child: OverflowBox(
+                alignment: Alignment.center,
+                child: FittedBox(
+                  fit: BoxFit.fitWidth,
+                  child: Container(
+                      width: size.width,
+                      height:
+                          size.width / (1 / cameraController.value.aspectRatio),
+                      child: cameraController.buildPreview()),
                 ),
-                Align(
-                    alignment: AlignmentDirectional.topCenter,
-                    child: Container(
-                        padding:
-                            const EdgeInsets.fromLTRB(0.0, 24.0, 0.0, 24.0),
-                        color: const Color.fromRGBO(0, 0, 0, 0.2),
-                        child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: <Widget>[
-                              getFlashButton(),
-                              getPicRatioButton()
-                            ]))),
-                Align(
-                    alignment: AlignmentDirectional.bottomCenter,
-                    child: Container(
-                        padding:
-                            const EdgeInsets.fromLTRB(0.0, 24.0, 0.0, 24.0),
-                        color: const Color.fromRGBO(0, 0, 0, 0.2),
-                        child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: <Widget>[
-                              getImagePickerButton(),
-                              getCaptureButton(),
-                              getFlipCameraButton()
-                            ]))),
-              ]));
+              ),
+            ),
+          ),
+        ),
+        Align(
+            alignment: AlignmentDirectional.topCenter,
+            child: Container(
+                padding: const EdgeInsets.fromLTRB(24.0, 24.0, 24.0, 24.0),
+                child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      InkWell(
+                        onTap: () {
+                          if (!mounted) return;
+                          Navigator.pop(context);
+                        },
+                        child: const Icon(Icons.close, size: 40),
+                      ),
+                      getFlashButton(),
+                    ]))),
+        Align(
+            alignment: AlignmentDirectional.bottomCenter,
+            child: Container(
+                padding: const EdgeInsets.fromLTRB(0.0, 24.0, 0.0, 24.0),
+                child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: <Widget>[
+                      getImagePickerButton(),
+                      getCaptureButton(),
+                      getFlipCameraButton()
+                    ]))),
+      ]));
+    }
   }
 
   Widget getFlashButton() {
