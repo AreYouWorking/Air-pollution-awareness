@@ -27,7 +27,8 @@ class DailyData {
 class ChartData {
   final DateTime x;
   final int y;
-  ChartData(this.x, this.y);
+  final Color color;
+  ChartData(this.x, this.y, this.color);
 }
 
 DailyData fromAqi(int aqi, DateTime datetime) {
@@ -64,10 +65,24 @@ List<List<ChartData>> getHourlyData(Airquality data) {
     if (data.hourly.us_aqi_pm2_5[i] == null) {
       break;
     }
-    res.add(ChartData(
-        DateTime.parse(data.hourly.time[i]), data.hourly.us_aqi_pm2_5[i]!));
+    var aqi = data.hourly.us_aqi_pm2_5[i]!;
+    var color = aqiColor[0];
+    if (aqi <= 50) {
+      color = aqiColor[0];
+    } else if (aqi <= 100) {
+      color = aqiColor[1];
+    } else if (aqi <= 150) {
+      color = aqiColor[2];
+    } else if (aqi <= 200) {
+      color = aqiColor[3];
+    } else if (aqi <= 300) {
+      color = aqiColor[4];
+    } else {
+      color = aqiColor[5];
+    }
+    res.add(ChartData(DateTime.parse(data.hourly.time[i]), aqi, color));
   }
-  return [res.sublist(0, 24), res.sublist(25, 48), res.sublist(49, res.length)];
+  return [res.sublist(0, 24), res.sublist(24, 48), res.sublist(48, 72)];
 }
 
 class Forecast extends StatefulWidget {
@@ -305,16 +320,13 @@ class _ForecastState extends State<Forecast> {
         ),
         Expanded(
           child: chart.SfCartesianChart(
-            primaryXAxis: chart.DateTimeAxis(
-              dateFormat: DateFormat.H(),
-            ),
+            primaryXAxis:
+                chart.DateTimeAxis(dateFormat: DateFormat.H(), interval: 1),
+            primaryYAxis: chart.NumericAxis(minimum: 0),
             series: <chart.ChartSeries<ChartData, DateTime>>[
               chart.ColumnSeries<ChartData, DateTime>(
-                  onCreateRenderer:
-                      (chart.ChartSeries<ChartData, DateTime> series) {
-                    return _CustomColumnSeriesRenderer();
-                  },
                   dataSource: datasrc[hourlyCurrIdx],
+                  pointColorMapper: (ChartData data, _) => data.color,
                   xValueMapper: (ChartData data, _) => data.x,
                   yValueMapper: (ChartData data, _) => data.y),
             ],
@@ -365,39 +377,5 @@ class _ForecastState extends State<Forecast> {
         ],
       ),
     );
-  }
-}
-
-class _CustomColumnSeriesRenderer extends chart.ColumnSeriesRenderer {
-  _CustomColumnSeriesRenderer();
-
-  @override
-  chart.ChartSegment createSegment() {
-    return _ColumnCustomPainter();
-  }
-}
-
-class _ColumnCustomPainter extends chart.ColumnSegment {
-  @override
-  Paint getFillPaint() {
-    final Paint customerFillPaint = Paint();
-    customerFillPaint.isAntiAlias = false;
-
-    var aqi = segmentRect.height;
-    if (aqi <= 50) {
-      customerFillPaint.color = aqiColor[0];
-    } else if (aqi <= 100) {
-      customerFillPaint.color = aqiColor[1];
-    } else if (aqi <= 150) {
-      customerFillPaint.color = aqiColor[2];
-    } else if (aqi <= 200) {
-      customerFillPaint.color = aqiColor[3];
-    } else if (aqi <= 300) {
-      customerFillPaint.color = aqiColor[4];
-    } else {
-      customerFillPaint.color = aqiColor[5];
-    }
-    customerFillPaint.style = PaintingStyle.fill;
-    return customerFillPaint;
   }
 }
