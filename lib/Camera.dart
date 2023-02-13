@@ -6,16 +6,16 @@ import 'package:flutter/material.dart';
 import 'package:app/EditPhoto/PhotoEditor.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:image/image.dart' as IMG;
+import 'package:image/image.dart' as img;
 import 'dart:io';
 
 import 'package:path_provider/path_provider.dart';
 
 enum SupportedAspectRatio {
-  NineBySixteen(9 / 16),
-  ThreeByFour(3 / 4),
-  FourByFive(4 / 5),
-  Square(1.0);
+  nineBySixteen(9 / 16),
+  threeByFour(3 / 4),
+  fourByFive(4 / 5),
+  square(1.0);
 
   const SupportedAspectRatio(this.value);
 
@@ -23,6 +23,8 @@ enum SupportedAspectRatio {
 }
 
 class Camera extends StatefulWidget {
+  const Camera({super.key});
+
   @override
   State<Camera> createState() => _CameraState();
 }
@@ -30,12 +32,12 @@ class Camera extends StatefulWidget {
 class _CameraState extends State<Camera> with WidgetsBindingObserver {
   CameraController? controller;
 
-  // TODO: Implement zoom
   double _minAvailableZoom = 1.0;
   double _maxAvailableZoom = 1.0;
   double _currentZoomLevel = 1.0;
+  double _initZoomLevel = 1.0;
 
-  SupportedAspectRatio _currentAspectRatio = SupportedAspectRatio.NineBySixteen;
+  SupportedAspectRatio _currentAspectRatio = SupportedAspectRatio.nineBySixteen;
 
   FlashMode? _currentFlashMode;
   bool _isRearCameraSelected = true;
@@ -156,9 +158,9 @@ class _CameraState extends State<Camera> with WidgetsBindingObserver {
       final directory = await getApplicationDocumentsDirectory();
       String fileFormat = imageFile.path.split('.').last;
 
-      IMG.Image cropped =
+      img.Image cropped =
           await cropPortraitImage(imageFile, _currentAspectRatio);
-      var jpg = IMG.encodeJpg(cropped);
+      var jpg = img.encodeJpg(cropped);
       File croppedFile = await File(
         '${directory.path}/$currentUnix.$fileFormat',
       ).writeAsBytes(jpg);
@@ -174,21 +176,21 @@ class _CameraState extends State<Camera> with WidgetsBindingObserver {
     }
   }
 
-  Future<IMG.Image> cropPortraitImage(
+  Future<img.Image> cropPortraitImage(
       File imageFile, SupportedAspectRatio aspectRatio) async {
     var bytes = await imageFile.readAsBytes();
-    IMG.Image? src = IMG.decodeImage(bytes);
+    img.Image? src = img.decodeImage(bytes);
 
     double widthRatio;
     double heightRatio;
 
-    if (aspectRatio == SupportedAspectRatio.NineBySixteen) {
+    if (aspectRatio == SupportedAspectRatio.nineBySixteen) {
       widthRatio = 9.0;
       heightRatio = 16.0;
-    } else if (aspectRatio == SupportedAspectRatio.ThreeByFour) {
+    } else if (aspectRatio == SupportedAspectRatio.threeByFour) {
       widthRatio = 3.0;
       heightRatio = 4.0;
-    } else if (aspectRatio == SupportedAspectRatio.FourByFive) {
+    } else if (aspectRatio == SupportedAspectRatio.fourByFive) {
       widthRatio = 4.0;
       heightRatio = 5.0;
     } else {
@@ -201,7 +203,7 @@ class _CameraState extends State<Camera> with WidgetsBindingObserver {
     int offsetX = 0;
     int offsetY = (src.height ~/ 2) - (cropHeight ~/ 2);
 
-    IMG.Image destImage = IMG.copyCrop(src,
+    img.Image destImage = img.copyCrop(src,
         x: offsetX, y: offsetY, width: cropWidth, height: cropHeight.round());
 
     return destImage;
@@ -263,7 +265,7 @@ class _CameraState extends State<Camera> with WidgetsBindingObserver {
           body: Stack(children: <Widget>[
             Align(
               alignment:
-                  _currentAspectRatio == SupportedAspectRatio.NineBySixteen
+                  _currentAspectRatio == SupportedAspectRatio.nineBySixteen
                       ? Alignment.bottomCenter
                       : Alignment.center,
               child: Transform.scale(
@@ -275,7 +277,7 @@ class _CameraState extends State<Camera> with WidgetsBindingObserver {
                       alignment: Alignment.center,
                       child: FittedBox(
                         fit: BoxFit.fitWidth,
-                        child: Container(
+                        child: SizedBox(
                             width: size.width,
                             height: size.width /
                                 (1 / cameraController.value.aspectRatio),
@@ -314,6 +316,20 @@ class _CameraState extends State<Camera> with WidgetsBindingObserver {
                           getCaptureButton(),
                           getFlipCameraButton()
                         ]))),
+            GestureDetector(
+                onScaleStart: (ScaleStartDetails scaleStartDetails) {
+              _initZoomLevel = _currentZoomLevel;
+            }, onScaleUpdate: (ScaleUpdateDetails scaleUpdateDetails) async {
+              // don't update the UI if the scale didn't change
+              if (scaleUpdateDetails.scale == 1.0) {
+                return;
+              }
+              setState(() {
+                _currentZoomLevel = (_initZoomLevel * scaleUpdateDetails.scale)
+                    .clamp(_minAvailableZoom, _maxAvailableZoom);
+              });
+              await cameraController.setZoomLevel(_currentZoomLevel);
+            }),
           ]));
     }
   }
@@ -353,11 +369,11 @@ class _CameraState extends State<Camera> with WidgetsBindingObserver {
   Widget getAspectRatioButton() {
     Widget button;
     TextStyle textStyle = const TextStyle(fontSize: 24);
-    if (_currentAspectRatio == SupportedAspectRatio.NineBySixteen) {
+    if (_currentAspectRatio == SupportedAspectRatio.nineBySixteen) {
       button = Text("9:16", style: textStyle);
-    } else if (_currentAspectRatio == SupportedAspectRatio.ThreeByFour) {
+    } else if (_currentAspectRatio == SupportedAspectRatio.threeByFour) {
       button = Text("3:4", style: textStyle);
-    } else if (_currentAspectRatio == SupportedAspectRatio.FourByFive) {
+    } else if (_currentAspectRatio == SupportedAspectRatio.fourByFive) {
       button = Text("4:5", style: textStyle);
     } else {
       button = Text("1:1", style: textStyle);
@@ -366,14 +382,14 @@ class _CameraState extends State<Camera> with WidgetsBindingObserver {
     return InkWell(
       onTap: () async {
         SupportedAspectRatio newAspectRatio;
-        if (_currentAspectRatio == SupportedAspectRatio.NineBySixteen) {
-          newAspectRatio = SupportedAspectRatio.ThreeByFour;
-        } else if (_currentAspectRatio == SupportedAspectRatio.ThreeByFour) {
-          newAspectRatio = SupportedAspectRatio.FourByFive;
-        } else if (_currentAspectRatio == SupportedAspectRatio.FourByFive) {
-          newAspectRatio = SupportedAspectRatio.Square;
+        if (_currentAspectRatio == SupportedAspectRatio.nineBySixteen) {
+          newAspectRatio = SupportedAspectRatio.threeByFour;
+        } else if (_currentAspectRatio == SupportedAspectRatio.threeByFour) {
+          newAspectRatio = SupportedAspectRatio.fourByFive;
+        } else if (_currentAspectRatio == SupportedAspectRatio.fourByFive) {
+          newAspectRatio = SupportedAspectRatio.square;
         } else {
-          newAspectRatio = SupportedAspectRatio.NineBySixteen;
+          newAspectRatio = SupportedAspectRatio.nineBySixteen;
         }
 
         setState(() {
