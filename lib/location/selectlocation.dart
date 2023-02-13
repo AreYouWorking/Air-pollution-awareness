@@ -168,7 +168,7 @@ class _SelectlocationState extends State<Selectlocation> {
   }
 
   InkWell locationText(Suggestlocation data) {
-    String dis = "${(data.distance / 1000.0).toStringAsFixed(2)} Km";
+    String dis = "Distance: ${(data.distance / 1000.0).toStringAsFixed(2)} Km";
 
     return InkWell(
       onTap: () {
@@ -179,14 +179,15 @@ class _SelectlocationState extends State<Selectlocation> {
           width: double.infinity,
           color: Colors.black,
           child: Padding(
-              padding: const EdgeInsets.fromLTRB(32, 4, 16, 16),
+              padding: const EdgeInsets.fromLTRB(32, 8, 16, 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("${data.name}   (${data.city!})"),
-                  Text(
-                    "$dis",
-                    textAlign: TextAlign.end,
+                  Text("${data.name} (${data.city!})"),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(0, 4, 4, 0),
+                    child: Align(
+                        alignment: Alignment.centerLeft, child: Text(dis)),
                   )
                 ],
               ))),
