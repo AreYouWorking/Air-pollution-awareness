@@ -11,8 +11,8 @@ void main() {
     testWidgets('tap on forecast, camera button 10 times', (tester) async {
       app.main();
       await tester.pumpAndSettle();
-      expect(find.text('forecast'), findsOneWidget);
-      final Finder cameraBtn = find.text('camera');
+      expect(find.text('Forecast'), findsOneWidget);
+      final Finder cameraBtn = find.text('Camera');
       final Finder forecastBtn = find.byIcon(Icons.filter_drama);
       await tester.tap(forecastBtn);
       for (var i = 0; i < 10; i++) {
