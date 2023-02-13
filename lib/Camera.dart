@@ -11,6 +11,17 @@ import 'dart:io';
 
 import 'package:path_provider/path_provider.dart';
 
+enum SupportedAspectRatio {
+  NineBySixteen(9 / 16),
+  ThreeByFour(3 / 4),
+  FourByFive(4 / 5),
+  Square(1.0);
+
+  const SupportedAspectRatio(this.value);
+
+  final double value;
+}
+
 class Camera extends StatefulWidget {
   @override
   State<Camera> createState() => _CameraState();
@@ -23,6 +34,8 @@ class _CameraState extends State<Camera> with WidgetsBindingObserver {
   double _minAvailableZoom = 1.0;
   double _maxAvailableZoom = 1.0;
   double _currentZoomLevel = 1.0;
+
+  SupportedAspectRatio _currentAspectRatio = SupportedAspectRatio.NineBySixteen;
 
   FlashMode? _currentFlashMode;
   bool _isRearCameraSelected = true;
@@ -143,7 +156,8 @@ class _CameraState extends State<Camera> with WidgetsBindingObserver {
       final directory = await getApplicationDocumentsDirectory();
       String fileFormat = imageFile.path.split('.').last;
 
-      IMG.Image cropped = await cropPortraitImage(imageFile, 1.0, 1.0);
+      IMG.Image cropped =
+          await cropPortraitImage(imageFile, _currentAspectRatio);
       var jpg = IMG.encodeJpg(cropped);
       File croppedFile = await File(
         '${directory.path}/$currentUnix.$fileFormat',
@@ -161,9 +175,26 @@ class _CameraState extends State<Camera> with WidgetsBindingObserver {
   }
 
   Future<IMG.Image> cropPortraitImage(
-      File imageFile, double widthRatio, double heightRatio) async {
+      File imageFile, SupportedAspectRatio aspectRatio) async {
     var bytes = await imageFile.readAsBytes();
     IMG.Image? src = IMG.decodeImage(bytes);
+
+    double widthRatio;
+    double heightRatio;
+
+    if (aspectRatio == SupportedAspectRatio.NineBySixteen) {
+      widthRatio = 9.0;
+      heightRatio = 16.0;
+    } else if (aspectRatio == SupportedAspectRatio.ThreeByFour) {
+      widthRatio = 3.0;
+      heightRatio = 4.0;
+    } else if (aspectRatio == SupportedAspectRatio.FourByFive) {
+      widthRatio = 4.0;
+      heightRatio = 5.0;
+    } else {
+      widthRatio = 1.0;
+      heightRatio = 1.0;
+    }
 
     var cropWidth = src!.width;
     var cropHeight = (src.width / widthRatio) * heightRatio;
@@ -228,54 +259,62 @@ class _CameraState extends State<Camera> with WidgetsBindingObserver {
       final size = MediaQuery.of(context).size;
 
       return Scaffold(
+          backgroundColor: Colors.black,
           body: Stack(children: <Widget>[
-        Transform.scale(
-          scale: 1.0,
-          child: AspectRatio(
-            aspectRatio: 3 / 4,
-            child: ClipRect(
-              child: OverflowBox(
-                alignment: Alignment.center,
-                child: FittedBox(
-                  fit: BoxFit.fitWidth,
-                  child: Container(
-                      width: size.width,
-                      height:
-                          size.width / (1 / cameraController.value.aspectRatio),
-                      child: cameraController.buildPreview()),
+            Align(
+              alignment:
+                  _currentAspectRatio == SupportedAspectRatio.NineBySixteen
+                      ? Alignment.bottomCenter
+                      : Alignment.center,
+              child: Transform.scale(
+                scale: 1.0,
+                child: AspectRatio(
+                  aspectRatio: _currentAspectRatio.value,
+                  child: ClipRect(
+                    child: OverflowBox(
+                      alignment: Alignment.center,
+                      child: FittedBox(
+                        fit: BoxFit.fitWidth,
+                        child: Container(
+                            width: size.width,
+                            height: size.width /
+                                (1 / cameraController.value.aspectRatio),
+                            child: cameraController.buildPreview()),
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ),
-          ),
-        ),
-        Align(
-            alignment: AlignmentDirectional.topCenter,
-            child: Container(
-                padding: const EdgeInsets.fromLTRB(24.0, 24.0, 24.0, 24.0),
-                child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[
-                      InkWell(
-                        onTap: () {
-                          if (!mounted) return;
-                          Navigator.pop(context);
-                        },
-                        child: const Icon(Icons.close, size: 40),
-                      ),
-                      getFlashButton(),
-                    ]))),
-        Align(
-            alignment: AlignmentDirectional.bottomCenter,
-            child: Container(
-                padding: const EdgeInsets.fromLTRB(0.0, 24.0, 0.0, 24.0),
-                child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: <Widget>[
-                      getImagePickerButton(),
-                      getCaptureButton(),
-                      getFlipCameraButton()
-                    ]))),
-      ]));
+            Align(
+                alignment: AlignmentDirectional.topCenter,
+                child: Container(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          InkWell(
+                            onTap: () {
+                              if (!mounted) return;
+                              Navigator.pop(context);
+                            },
+                            child: const Icon(Icons.close, size: 40),
+                          ),
+                          getAspectRatioButton(),
+                          getFlashButton(),
+                        ]))),
+            Align(
+                alignment: AlignmentDirectional.bottomCenter,
+                child: Container(
+                    padding: const EdgeInsets.fromLTRB(0.0, 24.0, 0.0, 24.0),
+                    child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: <Widget>[
+                          getImagePickerButton(),
+                          getCaptureButton(),
+                          getFlipCameraButton()
+                        ]))),
+          ]));
     }
   }
 
@@ -288,38 +327,61 @@ class _CameraState extends State<Camera> with WidgetsBindingObserver {
     } else if (_currentFlashMode == FlashMode.always) {
       button = const Icon(Icons.flash_on, size: 32);
     } else {
-      button = const Icon(Icons.flashlight_on, size: 32);
+      button = const Icon(Icons.flash_off, size: 32);
     }
 
     return InkWell(
       onTap: () async {
-        FlashMode newMode;
+        FlashMode? newMode = _currentFlashMode;
         if (_currentFlashMode == FlashMode.off) {
           newMode = FlashMode.auto;
         } else if (_currentFlashMode == FlashMode.auto) {
           newMode = FlashMode.always;
         } else if (_currentFlashMode == FlashMode.always) {
-          newMode = FlashMode.torch;
-        } else {
           newMode = FlashMode.off;
         }
 
         setState(() {
           _currentFlashMode = newMode;
         });
-        await controller!.setFlashMode(newMode);
+        await controller!.setFlashMode(newMode!);
       },
       child: button,
     );
   }
 
-  // TODO: Implement Aspect Ratio Selection
-  Widget getPicRatioButton() {
-    return const InkWell(
-        child: Icon(
-      Icons.aspect_ratio,
-      size: 32,
-    ));
+  Widget getAspectRatioButton() {
+    Widget button;
+    TextStyle textStyle = const TextStyle(fontSize: 24);
+    if (_currentAspectRatio == SupportedAspectRatio.NineBySixteen) {
+      button = Text("9:16", style: textStyle);
+    } else if (_currentAspectRatio == SupportedAspectRatio.ThreeByFour) {
+      button = Text("3:4", style: textStyle);
+    } else if (_currentAspectRatio == SupportedAspectRatio.FourByFive) {
+      button = Text("4:5", style: textStyle);
+    } else {
+      button = Text("1:1", style: textStyle);
+    }
+
+    return InkWell(
+      onTap: () async {
+        SupportedAspectRatio newAspectRatio;
+        if (_currentAspectRatio == SupportedAspectRatio.NineBySixteen) {
+          newAspectRatio = SupportedAspectRatio.ThreeByFour;
+        } else if (_currentAspectRatio == SupportedAspectRatio.ThreeByFour) {
+          newAspectRatio = SupportedAspectRatio.FourByFive;
+        } else if (_currentAspectRatio == SupportedAspectRatio.FourByFive) {
+          newAspectRatio = SupportedAspectRatio.Square;
+        } else {
+          newAspectRatio = SupportedAspectRatio.NineBySixteen;
+        }
+
+        setState(() {
+          _currentAspectRatio = newAspectRatio;
+        });
+      },
+      child: button,
+    );
   }
 
   Widget getImagePickerButton() {
