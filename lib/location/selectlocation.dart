@@ -15,7 +15,7 @@ import 'userposition.dart';
 const greyUI = Color.fromRGBO(28, 28, 30, 1);
 
 class Suggestlocation {
-  final String name;
+  final String? name;
   final String? city;
   final double lat;
   final double lon;
@@ -31,8 +31,8 @@ class Suggestlocation {
 
   factory Suggestlocation.fromJson(Map<String, dynamic> json) {
     return Suggestlocation(
-      name: json['name'] as String,
-      city: json['city'] == null ? "T" : json['city'] as String,
+      name: json['name'] ?? json['state'] as String,
+      city: json['city'] ?? json['state'] as String,
       lat: json['lat'] as double,
       lon: json['lon'] as double,
       distance: json['distance'] as double,
@@ -176,13 +176,20 @@ class _SelectlocationState extends State<Selectlocation> {
       },
       child: Container(
           margin: const EdgeInsets.fromLTRB(0, 20, 0, 0),
-          height: 50,
           width: double.infinity,
           color: Colors.black,
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(32, 16, 16, 16),
-            child: Text("${data.name}${data.city!} : $dis"),
-          )),
+              padding: const EdgeInsets.fromLTRB(32, 4, 16, 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("${data.name}   (${data.city!})"),
+                  Text(
+                    "$dis",
+                    textAlign: TextAlign.end,
+                  )
+                ],
+              ))),
     );
   }
 }
