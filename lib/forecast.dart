@@ -107,7 +107,7 @@ class _ForecastState extends State<Forecast> {
       child: SingleChildScrollView(
         child: Container(
           margin:
-              const EdgeInsets.only(left: 40, top: 20, right: 40, bottom: 20),
+              const EdgeInsets.only(left: 25, top: 20, right: 25, bottom: 20),
           child: Column(
             children: [
               infoCard(
