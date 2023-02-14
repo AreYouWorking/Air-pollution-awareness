@@ -9,7 +9,7 @@ const aqiColor = [
   Color.fromRGBO(55, 146, 55, 1),
   Color.fromARGB(255, 198, 198, 0),
   Color.fromARGB(255, 212, 180, 73),
-  Color.fromARGB(255, 232, 108, 108),
+  Color.fromARGB(255, 255, 3, 3),
   Color.fromARGB(255, 156, 29, 29),
   Color.fromRGBO(128, 55, 146, 1)
 ];
@@ -110,8 +110,7 @@ class _ForecastState extends State<Forecast> {
               const EdgeInsets.only(left: 25, top: 20, right: 25, bottom: 20),
           child: Column(
             children: [
-              infoCard(
-                  "Today", const Color.fromRGBO(255, 77, 0, 1), 200, today()),
+              infoCard("Today", Colors.transparent, 200, today()),
               infoCard("Daily", greyUI, 180, daily()),
               infoCard("Hourly", greyUI, 260, hourly()),
             ],
@@ -127,54 +126,64 @@ class _ForecastState extends State<Forecast> {
     }
 
     var aqi = getDailyData(widget.aqicnData!);
-    return Column(children: [
-      Expanded(
-        flex: 3,
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                aqi[0].emoji,
-                textScaleFactor: 3.0,
-                textAlign: TextAlign.center,
-              ),
-            ),
-            Expanded(
-              flex: 2,
-              child: Padding(
-                padding: const EdgeInsets.only(top: 15.0),
-                child: Column(
-                  children: [
-                    Text(
-                      "AQI ${aqi[0].aqi}",
-                      textScaleFactor: 2.0,
-                    ),
-                    Text(
-                      aqi[0].text,
-                      textScaleFactor: 1.5,
-                    )
-                  ],
+    var currColor = aqi[0].color;
+    var darkerOffset = 60;
+    return Container(
+      decoration: BoxDecoration(
+          color: currColor, borderRadius: BorderRadius.circular(15.0)),
+      child: Column(children: [
+        Expanded(
+          flex: 3,
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  aqi[0].emoji,
+                  textScaleFactor: 3.0,
+                  textAlign: TextAlign.center,
                 ),
               ),
-            )
-          ],
-        ),
-      ),
-      Expanded(
-        flex: 2,
-        child: Container(
-          padding: const EdgeInsets.only(top: 15),
-          decoration: const BoxDecoration(
-              color: Color.fromRGBO(135, 57, 0, 1),
-              borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(15.0),
-                  bottomRight: Radius.circular(15.0))),
-          child: Row(
-            children: todayLower(),
+              Expanded(
+                flex: 2,
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 15.0),
+                  child: Column(
+                    children: [
+                      Text(
+                        "AQI ${aqi[0].aqi}",
+                        textScaleFactor: 2.0,
+                      ),
+                      Text(
+                        aqi[0].text,
+                        textScaleFactor: 1.5,
+                      )
+                    ],
+                  ),
+                ),
+              )
+            ],
           ),
         ),
-      )
-    ]);
+        Expanded(
+          flex: 2,
+          child: Container(
+            padding: const EdgeInsets.only(top: 15),
+            decoration: BoxDecoration(
+                color: Color.fromRGBO(
+                    (currColor.red - darkerOffset).clamp(0, 255),
+                    (currColor.green - darkerOffset).clamp(0, 255),
+                    (currColor.blue - darkerOffset).clamp(0, 255),
+                    1.0),
+                borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(15.0),
+                    bottomRight: Radius.circular(15.0))),
+            child: Row(
+              children: todayLower(),
+            ),
+          ),
+        )
+      ]),
+    );
   }
 
   List<Widget> todayLower() {
