@@ -127,7 +127,11 @@ class _ForecastState extends State<Forecast> {
 
     var aqi = getDailyData(widget.aqicnData!);
     var currColor = aqi[0].color;
-    var darkerOffset = 60;
+    var darkerOffset = 0.3; // 0.0 - 1.0
+    var darkerColor = HSLColor.fromColor(currColor)
+        .withLightness((HSLColor.fromColor(currColor).lightness - darkerOffset)
+            .clamp(0.0, 1.0))
+        .toColor();
     return Container(
       decoration: BoxDecoration(
           color: currColor, borderRadius: BorderRadius.circular(15.0)),
@@ -169,11 +173,7 @@ class _ForecastState extends State<Forecast> {
           child: Container(
             padding: const EdgeInsets.only(top: 15),
             decoration: BoxDecoration(
-                color: Color.fromRGBO(
-                    (currColor.red - darkerOffset).clamp(0, 255),
-                    (currColor.green - darkerOffset).clamp(0, 255),
-                    (currColor.blue - darkerOffset).clamp(0, 255),
-                    1.0),
+                color: darkerColor,
                 borderRadius: const BorderRadius.only(
                     bottomLeft: Radius.circular(15.0),
                     bottomRight: Radius.circular(15.0))),
