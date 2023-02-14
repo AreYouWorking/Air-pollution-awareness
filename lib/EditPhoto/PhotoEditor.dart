@@ -52,6 +52,7 @@ class _PhotoEditorState extends State<PhotoEditor> {
     return Scaffold(
         appBar: AppBar(
           title: const Text('Editing Photo'),
+          backgroundColor: Colors.black,
         ),
         body: GestureDetector(
             onScaleStart: (details) {
@@ -77,7 +78,7 @@ class _PhotoEditorState extends State<PhotoEditor> {
             child: RepaintBoundary(
                 key: _globalKey,
                 child: Stack(children: [
-                  Container(color: Colors.black26),
+                  Container(color: Colors.black),
                   Image.file(widget.image),
                   ...mockData.map(_buildItemWidget).toList(),
 
@@ -86,11 +87,12 @@ class _PhotoEditorState extends State<PhotoEditor> {
         floatingActionButton:
             Column(mainAxisAlignment: MainAxisAlignment.end, children: <Widget>[
           Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.fromLTRB(8, 8, 4, 20),
             child: FloatingActionButton(
-              backgroundColor: Colors.red,
+              backgroundColor: const ui.Color.fromARGB(255, 255, 60, 0),
               foregroundColor: Colors.white,
               onPressed: _savePicture,
+              child: const Icon(Icons.save),
             ),
           )
         ]));
