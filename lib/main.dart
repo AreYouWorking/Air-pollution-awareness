@@ -52,9 +52,12 @@ class MainScreen extends StatefulWidget {
 class _MainScreen extends State<MainScreen> {
   Airquality? data;
   aqicn.Data? aqicnData;
+  late Timer everyHour;
 
   int _selectedIndex = 1;
-  Widget currBody = Forecast();
+  Widget currBody = Forecast(
+    onRefresh: () async {},
+  );
 
   void _onItemTapped(int index) {
     setState(() {
@@ -62,7 +65,12 @@ class _MainScreen extends State<MainScreen> {
       if (index == 0) {
         currBody = const Memory();
       } else {
-        currBody = Forecast(data: data, aqicnData: aqicnData);
+        currBody = Forecast(
+            onRefresh: () async {
+              await forecastupdate();
+            },
+            data: data,
+            aqicnData: aqicnData);
         setState(() {});
       }
     });
@@ -78,6 +86,10 @@ class _MainScreen extends State<MainScreen> {
 
       Userposition.display_place = await getCurrentPlaceName();
       forecastupdate();
+
+      everyHour = Timer.periodic(const Duration(hours: 1), (Timer t) {
+        forecastupdate();
+      });
     } catch (_) {
       // TODO: do something if can't fetch gps location
     }
@@ -89,7 +101,12 @@ class _MainScreen extends State<MainScreen> {
           Userposition.latitude, Userposition.longitude);
       aqicnData =
           await aqicn.getData(Userposition.latitude, Userposition.longitude);
-      currBody = Forecast(data: data, aqicnData: aqicnData);
+      currBody = Forecast(
+          onRefresh: () async {
+            await forecastupdate();
+          },
+          data: data,
+          aqicnData: aqicnData);
       setState(() {});
     } catch (_) {
       // TODO: do something if can't fetch gps location

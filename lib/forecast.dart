@@ -88,8 +88,9 @@ List<List<ChartData>> getHourlyData(Airquality data) {
 class Forecast extends StatefulWidget {
   Airquality? data;
   aqicn.Data? aqicnData;
+  Future<void> Function() onRefresh;
 
-  Forecast({super.key, this.data, this.aqicnData});
+  Forecast({super.key, required this.onRefresh, this.data, this.aqicnData});
 
   @override
   State<Forecast> createState() => _ForecastState();
@@ -102,9 +103,7 @@ class _ForecastState extends State<Forecast> {
   @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
-      onRefresh: () async {
-        // refetch ?
-      },
+      onRefresh: widget.onRefresh,
       child: SingleChildScrollView(
         child: Container(
           margin:
@@ -224,7 +223,7 @@ class _ForecastState extends State<Forecast> {
               "${widget.aqicnData!.iaqi.w.v} Km/h",
               textScaleFactor: 1.5,
             ),
-            Text("$windStr")
+            Text(windStr)
           ],
         ),
       ),
@@ -235,7 +234,7 @@ class _ForecastState extends State<Forecast> {
               "${widget.aqicnData!.iaqi.t.v} °C",
               textScaleFactor: 1.5,
             ),
-            Text('$tempStr')
+            Text(tempStr)
           ],
         ),
       )
