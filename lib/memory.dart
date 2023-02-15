@@ -1,7 +1,12 @@
+import 'dart:io';
+
 import 'package:app/Camera.dart';
 import 'package:app/main.dart';
-import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:photo_gallery/photo_gallery.dart';
+import 'package:permission_handler/permission_handler.dart';
+
+import 'package:app/memory/displayphoto.dart';
 
 class Memory extends StatefulWidget {
   const Memory({super.key});
@@ -11,6 +16,43 @@ class Memory extends StatefulWidget {
 }
 
 class _MemoryState extends State<Memory> {
+  Widget memoryWidget = const SizedBox.shrink();
+
+  List<Album>? _albums;
+
+  @override
+  void initState() {
+    super.initState();
+    initAsync();
+  }
+
+  Future<void> initAsync() async {
+    if (await _promptPermissionSetting()) {
+      List<Album> albums =
+          await PhotoGallery.listAlbums(mediumType: MediumType.image);
+      setState(() {
+        print("Album setState");
+        _albums = albums;
+        Album photo =
+            _albums!.firstWhere((element) => element.name == "AirWareness");
+        if (photo.count > 0) {
+          memoryWidget = AlbumPage(photo);
+        }
+      });
+    }
+    setState(() {});
+  }
+
+  Future<bool> _promptPermissionSetting() async {
+    if (Platform.isIOS &&
+            await Permission.storage.request().isGranted &&
+            await Permission.photos.request().isGranted ||
+        Platform.isAndroid && await Permission.storage.request().isGranted) {
+      return true;
+    }
+    return false;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -24,8 +66,7 @@ class _MemoryState extends State<Memory> {
                 if (!mounted) return;
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                      builder: (context) => Camera()),
+                  MaterialPageRoute(builder: (context) => const Camera()),
                 );
               },
               child: Container(
@@ -38,33 +79,24 @@ class _MemoryState extends State<Memory> {
                   size: 50,
                 ),
               )),
-          Expanded(
-            child: Container(
-              margin: const EdgeInsets.only(top: 20),
-              child: Column(children: [
-                const Text("Memory", textScaleFactor: 1.5),
-                Expanded(
-                  child: Container(
-                    margin: const EdgeInsets.all(20),
-                    height: 400,
-                    child: GridView.count(
-                      crossAxisCount: 3,
-                      children: List.generate(20, (index) {
-                        return Container(
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(15),
-                              color: greyUI),
-                          margin: const EdgeInsets.all(5),
-                          width: 100,
-                          height: 200,
-                        );
-                      }),
-                    ),
-                  ),
-                )
-              ]),
-            ),
-          )
+//           GestureDetector(
+//               onTap: () async {
+//                 setState(() {
+//                   print("test");
+//                   print("object");
+//                   initAsync();
+//                   print(_albums?.elementAt(0));
+//                   test();
+//                 });
+//               },
+//               child: Column(children: const [
+//                 Text(
+//                   "test",
+//                   textScaleFactor: 0.7,
+//                 ),
+//               ])
+//TODO style imporve
+          memoryWidget
         ],
       )),
     );

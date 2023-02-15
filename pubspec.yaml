@@ -52,6 +52,7 @@ dependencies:
   geocoding: ^2.0.5
   image: ^4.0.15
   gallery_saver: ^2.3.2
+  photo_gallery: ^1.1.1
 
 dev_dependencies:
   integration_test:
