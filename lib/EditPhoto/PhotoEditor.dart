@@ -51,7 +51,8 @@ class _PhotoEditorState extends State<PhotoEditor> {
     // print(imgFile.path);
     await Future.delayed(const Duration(
         milliseconds: 500)); // waiting for image fully writeAsBytes
-    await GallerySaver.saveImage(imgFile.path, albumName: 'AirWareness');
+    await GallerySaver.saveImage(imgFile.path,
+        toDcim: true, albumName: 'AirWareness');
     setState(() {
       _isSaving = false;
     });
