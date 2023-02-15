@@ -2,6 +2,7 @@ import 'package:app/openmetro/airquality.dart';
 import 'package:app/aqicn/geofeed.dart' as aqicn;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:syncfusion_flutter_charts/charts.dart' as chart;
 
 const greyUI = Color.fromRGBO(28, 28, 30, 1);
@@ -122,7 +123,12 @@ class _ForecastState extends State<Forecast> {
 
   Widget today() {
     if (widget.aqicnData == null) {
-      return Container();
+      return Container(
+          decoration: BoxDecoration(
+              color: greyUI, borderRadius: BorderRadius.circular(15.0)),
+          child: Center(
+              child: LoadingAnimationWidget.prograssiveDots(
+                  color: Colors.white, size: 50)));
     }
 
     var aqi = getDailyData(widget.aqicnData!);
@@ -252,7 +258,9 @@ class _ForecastState extends State<Forecast> {
 
   Widget daily() {
     if (widget.aqicnData == null) {
-      return Container();
+      return Center(
+          child: LoadingAnimationWidget.prograssiveDots(
+              color: Colors.white, size: 50));
     }
     var aqi = getDailyData(widget.aqicnData!);
     List<Widget> dailyCards = [];
@@ -306,7 +314,9 @@ class _ForecastState extends State<Forecast> {
 
   Widget hourly() {
     if (widget.data == null) {
-      return Container();
+      return Center(
+          child: LoadingAnimationWidget.prograssiveDots(
+              color: Colors.white, size: 50));
     }
 
     final now = DateTime.now();

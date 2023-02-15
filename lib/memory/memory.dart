@@ -56,7 +56,7 @@ class _MemoryState extends State<Memory> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(top: 20),
+      margin: const EdgeInsets.only(left: 25, top: 20, right: 25, bottom: 20),
       child: Center(
           child: Column(
         children: [
@@ -70,7 +70,7 @@ class _MemoryState extends State<Memory> {
                 );
               },
               child: Container(
-                width: 330,
+                width: double.infinity,
                 height: 175,
                 decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(15), color: greyUI),

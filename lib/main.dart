@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:app/aqicn/geofeed.dart' as aqicn;
 import 'package:app/forecast.dart';
-import 'package:app/memory.dart';
+import 'package:app/memory/memory.dart';
 import 'package:app/openmetro/airquality.dart';
 import 'package:app/utils.dart';
 import 'package:camera/camera.dart';
@@ -153,16 +153,10 @@ class _MainScreen extends State<MainScreen> {
                     forecastupdate();
                   });
                 },
-                child: Column(children: [
-                  Text(
-                    Userposition.display_place,
-                    textScaleFactor: 0.7,
-                  ),
-                  Text(
-                    "${Userposition.latitude.isNotEmpty ? Userposition.latitude.substring(0, 7) : Userposition.latitude}, ${Userposition.longitude.isNotEmpty ? Userposition.longitude.substring(0, 7) : Userposition.longitude}",
-                    textScaleFactor: 0.7,
-                  )
-                ])),
+                child: Text(
+                  Userposition.display_place,
+                  textScaleFactor: 0.7,
+                )),
           ],
         ),
       ),
