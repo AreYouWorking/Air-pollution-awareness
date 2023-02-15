@@ -5,6 +5,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:gallery_saver/gallery_saver.dart';
 
 class PhotoEditor extends StatefulWidget {
   const PhotoEditor({super.key, required this.image});
@@ -30,25 +31,36 @@ class _PhotoEditorState extends State<PhotoEditor> {
 
   late bool _inAction;
 
+  bool _isSaving = false;
+
   Future<void> _savePicture() async {
+    setState(() {
+      _isSaving = true;
+    });
     String timestamp() => DateTime.now().millisecondsSinceEpoch.toString();
 
     RenderRepaintBoundary boundary =
         _globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
     ui.Image image = await boundary.toImage(pixelRatio: 3.0);
     final directory = (await getApplicationDocumentsDirectory()).path;
-    print(directory); // directory = /data/user/0/com.example.app/app_flutter
+    // print(directory); // directory = /data/user/0/com.example.app/app_flutter
     ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
     Uint8List? pngBytes = byteData?.buffer.asUint8List();
     File imgFile = File('$directory/${timestamp()}.png');
     imgFile.writeAsBytes(pngBytes!);
+    // print(imgFile.path);
+    await Future.delayed(const Duration(
+        milliseconds: 500)); // waiting for image fully writeAsBytes
+    await GallerySaver.saveImage(imgFile.path, albumName: 'AirWareness');
+    setState(() {
+      _isSaving = false;
+    });
   }
 
   // https://www.youtube.com/watch?v=PTyvarfJiW8
   @override
   Widget build(BuildContext context) {
     final screen = MediaQuery.of(context).size;
-
     return Scaffold(
         appBar: AppBar(
           title: const Text('Editing Photo'),
@@ -91,7 +103,7 @@ class _PhotoEditorState extends State<PhotoEditor> {
             child: FloatingActionButton(
               backgroundColor: const ui.Color.fromARGB(255, 255, 60, 0),
               foregroundColor: Colors.white,
-              onPressed: _savePicture,
+              onPressed: !_isSaving ? _savePicture : null,
               child: const Icon(Icons.save),
             ),
           )
@@ -151,8 +163,14 @@ class OverlaidWidget {
 final mockData = [
   OverlaidWidget()
     ..type = ItemType.Text
-    ..value = "Hello World",
+    ..value = "AQI 185"
+    ..position = Offset(0.1, 0.2),
   OverlaidWidget()
     ..type = ItemType.Text
-    ..value = "bla bla",
+    ..value = "ลมไม่แรง 1.0 กม./ชม."
+    ..position = Offset(0.1, 0.3),
+  OverlaidWidget()
+    ..type = ItemType.Text
+    ..value = "5 จุดความร้อนใกล้ฉัน"
+    ..position = Offset(0.1, 0.4)
 ];
