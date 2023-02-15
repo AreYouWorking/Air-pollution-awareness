@@ -1,5 +1,5 @@
 class Userposition {
-  static String display_place = 'V';
+  static String display_place = '';
   static String latitude = '';
   static String longitude = '';
 

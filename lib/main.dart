@@ -153,9 +153,14 @@ class _MainScreen extends State<MainScreen> {
                     forecastupdate();
                   });
                 },
-                child: Text(
-                  Userposition.display_place,
-                  textScaleFactor: 0.7,
+                child: Row(
+                  children: [
+                    Icon(Icons.near_me_outlined),
+                    Text(
+                      Userposition.display_place,
+                      textScaleFactor: 0.7,
+                    )
+                  ],
                 )),
           ],
         ),
