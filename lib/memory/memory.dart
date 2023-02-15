@@ -44,11 +44,19 @@ class _MemoryState extends State<Memory> {
   }
 
   Future<bool> _promptPermissionSetting() async {
-    if (Platform.isIOS &&
-            await Permission.storage.request().isGranted &&
-            await Permission.photos.request().isGranted ||
-        Platform.isAndroid && await Permission.storage.request().isGranted) {
-      return true;
+    if (Platform.isIOS) {
+      // Request storage and photo permissions on iOS
+      var storageStatus = await Permission.storage.request();
+      var photoStatus = await Permission.photos.request();
+      if (storageStatus.isGranted && photoStatus.isGranted) {
+        return true;
+      }
+    } else if (Platform.isAndroid) {
+      // Request storage permission on Android
+      var storageStatus = await Permission.storage.request();
+      if (storageStatus.isGranted) {
+        return true;
+      }
     }
     return false;
   }
@@ -79,6 +87,13 @@ class _MemoryState extends State<Memory> {
                   size: 50,
                 ),
               )),
+          const Padding(
+            padding: EdgeInsets.only(top: 20.0),
+            child: Text(
+              '- Memory -',
+              textScaleFactor: 1.3,
+            ),
+          ),
 //           GestureDetector(
 //               onTap: () async {
 //                 setState(() {

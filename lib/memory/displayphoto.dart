@@ -35,8 +35,8 @@ class AlbumPageState extends State<AlbumPage> {
             padding: const EdgeInsets.all(20),
             child: GridView.count(
               crossAxisCount: 3,
-              mainAxisSpacing: 1.0,
-              crossAxisSpacing: 1.0,
+              mainAxisSpacing: 8.0,
+              crossAxisSpacing: 8.0,
               children: <Widget>[
                 ...?_media?.map(
                   (medium) => GestureDetector(
@@ -71,7 +71,9 @@ class ViewerPage extends StatelessWidget {
     DateTime? date = medium.creationDate ?? medium.modifiedDate;
     return MaterialApp(
       home: Scaffold(
+        backgroundColor: Colors.black,
         appBar: AppBar(
+          backgroundColor: Colors.black,
           leading: IconButton(
             onPressed: () => Navigator.of(context).pop(),
             icon: const Icon(Icons.arrow_back_ios),
