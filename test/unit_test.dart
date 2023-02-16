@@ -7,6 +7,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:app/openmetro/airquality.dart';
 import 'package:intl/intl.dart';
 
+import 'package:app/location/selectlocation.dart';
+
 void main() {
   group('[Unit_Test] [AirQualityAPI]', () {
     test('fetchAirQuality returns success response', () async {
@@ -56,6 +58,90 @@ void main() {
       expect(airquality.hourly.time,
           ["2022-02-12T00:00:00.000Z", "2022-02-12T01:00:00.000Z"]);
       expect(airquality.hourly.us_aqi_pm2_5, [74, 75]);
+    });
+  });
+
+  group('[Unit_Test] [Location]', () {
+    final json = {
+      'name': 'Test Location',
+      'city': 'Test City',
+      'lat': 37.7749,
+      'lon': -122.4194,
+      'distance': 10.0,
+    };
+    final location = Suggestlocation.fromJson(json);
+
+    test(
+        'fromJson() should return a Suggestlocation object with correct values',
+        () {
+      expect(location.name, json['name']);
+      expect(location.city, json['city']);
+      expect(location.lat, json['lat']);
+      expect(location.lon, json['lon']);
+      expect(location.distance, json['distance']);
+    });
+
+    test('should return a list of Suggestlocation objects', () {
+      const json = '''
+        {
+          "results": [
+            {
+              "name": "Location 1",
+              "city": "City 1",
+              "lat": 40.7128,
+              "lon": -74.0060,
+              "distance": 5.0
+            },
+            {
+              "name": "Location 2",
+              "city": "City 2",
+              "lat": 37.7749,
+              "lon": -122.4194,
+              "distance": 10.0
+            }
+          ]
+        }
+      ''';
+      final expectedLocations = [
+        const Suggestlocation(
+          name: "Location 1",
+          city: "City 1",
+          lat: 40.7128,
+          lon: -74.0060,
+          distance: 5.0,
+        ),
+        const Suggestlocation(
+          name: "Location 2",
+          city: "City 2",
+          lat: 37.7749,
+          lon: -122.4194,
+          distance: 10.0,
+        ),
+      ];
+
+      final actualLocations = parseJson(json);
+
+      expect(actualLocations.elementAt(0).name,
+          expectedLocations.elementAt(0).name);
+      expect(actualLocations.elementAt(0).city,
+          expectedLocations.elementAt(0).city);
+      expect(
+          actualLocations.elementAt(0).lat, expectedLocations.elementAt(0).lat);
+      expect(
+          actualLocations.elementAt(0).lon, expectedLocations.elementAt(0).lon);
+      expect(actualLocations.elementAt(0).distance,
+          expectedLocations.elementAt(0).distance);
+
+      expect(actualLocations.elementAt(1).name,
+          expectedLocations.elementAt(1).name);
+      expect(actualLocations.elementAt(1).city,
+          expectedLocations.elementAt(1).city);
+      expect(
+          actualLocations.elementAt(1).lat, expectedLocations.elementAt(1).lat);
+      expect(
+          actualLocations.elementAt(1).lon, expectedLocations.elementAt(1).lon);
+      expect(actualLocations.elementAt(1).distance,
+          expectedLocations.elementAt(1).distance);
     });
   });
 }
