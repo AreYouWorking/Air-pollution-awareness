@@ -7,12 +7,12 @@ import 'package:syncfusion_flutter_charts/charts.dart' as chart;
 
 const greyUI = Color.fromRGBO(28, 28, 30, 1);
 const aqiColor = [
-  Color.fromRGBO(55, 146, 55, 1),
-  Color.fromARGB(255, 198, 198, 0),
-  Color.fromARGB(255, 212, 180, 73),
-  Color.fromARGB(255, 255, 3, 3),
-  Color.fromARGB(255, 156, 29, 29),
-  Color.fromRGBO(128, 55, 146, 1)
+  Color.fromRGBO(0, 153, 102, 1),
+  Color.fromRGBO(255, 222, 51, 1),
+  Color.fromRGBO(255, 153, 61, 1),
+  Color.fromRGBO(204, 0, 51, 1),
+  Color.fromRGBO(102, 0, 153, 1),
+  Color.fromRGBO(126, 0, 35, 1)
 ];
 
 class DailyData {
