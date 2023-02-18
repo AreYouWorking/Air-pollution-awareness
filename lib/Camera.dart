@@ -166,6 +166,7 @@ class _CameraState extends State<Camera> with WidgetsBindingObserver {
       ).writeAsBytes(jpg);
 
       if (!mounted) return;
+      Navigator.pop(context); // to dismiss loader dialog
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -418,10 +419,15 @@ class _CameraState extends State<Camera> with WidgetsBindingObserver {
   }
 
   Widget getCaptureButton() {
+    bool isPressed = false;
     return InkWell(
-      onTap: () {
-        takePicture();
-      },
+      onTap: (() {
+        showLoaderDialog(context);
+        if (!isPressed) {
+          isPressed = true;
+          takePicture();
+        }
+      }),
       child: Stack(
         alignment: Alignment.center,
         children: const [
@@ -445,4 +451,26 @@ class _CameraState extends State<Camera> with WidgetsBindingObserver {
           ),
         ]));
   }
+}
+
+// https://stackoverflow.com/questions/51415236/show-circular-progress-dialog-in-login-screen-in-flutter-how-to-implement-progr
+showLoaderDialog(BuildContext context) {
+  AlertDialog alert = AlertDialog(
+    content: Row(
+      children: [
+        const CircularProgressIndicator(),
+        Container(
+            margin: const EdgeInsets.only(left: 7),
+            child: const Text("Loading...")),
+      ],
+    ),
+  );
+  showDialog(
+    barrierDismissible: false,
+    context: context,
+    builder: (BuildContext context) {
+      //prevent Back button press
+      return WillPopScope(onWillPop: () async => false, child: alert);
+    },
+  );
 }
