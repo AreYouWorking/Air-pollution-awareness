@@ -158,9 +158,10 @@ class _MainScreen extends State<MainScreen> {
                     },
                     child: Row(
                       mainAxisSize: MainAxisSize.max,
+                      mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         const Icon(Icons.near_me_outlined),
-                        Expanded(
+                        Flexible(
                             child: Text(
                           Userposition.display_place,
                           textScaleFactor: 0.7,
