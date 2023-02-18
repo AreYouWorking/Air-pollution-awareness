@@ -122,8 +122,8 @@ class _MainScreen extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset:
-          false, // (size themselves to avoid the onscreen keyboard)
+      resizeToAvoidBottomInset: false,
+      // (size themselves to avoid the onscreen keyboard)
       backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: Colors.black,
@@ -136,32 +136,41 @@ class _MainScreen extends State<MainScreen> {
             ),
 
             //make it clikable to set location
-            GestureDetector(
-                onTap: () async {
-                  final chosenLocation = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const Selectlocation(),
-                      ));
-                  print(chosenLocation);
-                  setState(() {
-                    print("data");
-                    Userposition.display_place = chosenLocation.name;
-                    Userposition.latitude = chosenLocation.lat.toString();
-                    Userposition.longitude = chosenLocation.lon.toString();
-                    print(Userposition.display_place);
-                    forecastupdate();
-                  });
-                },
-                child: Row(
-                  children: [
-                    Icon(Icons.near_me_outlined),
-                    Text(
-                      Userposition.display_place,
-                      textScaleFactor: 0.7,
-                    )
-                  ],
-                )),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: GestureDetector(
+                    onTap: () async {
+                      final chosenLocation = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const Selectlocation(),
+                          ));
+                      print(chosenLocation);
+                      setState(() {
+                        print("data");
+                        Userposition.display_place = chosenLocation.name;
+                        Userposition.latitude = chosenLocation.lat.toString();
+                        Userposition.longitude = chosenLocation.lon.toString();
+                        print(Userposition.display_place);
+                        forecastupdate();
+                      });
+                    },
+                    child: Row(
+                      mainAxisSize: MainAxisSize.max,
+                      children: [
+                        const Icon(Icons.near_me_outlined),
+                        Expanded(
+                            child: Text(
+                          Userposition.display_place,
+                          textScaleFactor: 0.7,
+                          overflow: TextOverflow.fade,
+                          maxLines: 1,
+                        ))
+                      ],
+                    )),
+              ),
+            ),
           ],
         ),
       ),
