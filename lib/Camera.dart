@@ -244,7 +244,7 @@ class _CameraState extends State<Camera> with WidgetsBindingObserver {
 
   void flipCamera() async {
     onNewCameraSelected(
-      cameras[_isRearCameraSelected ? 0 : 1],
+      cameras[_isRearCameraSelected ? 1 : 0],
     );
     setState(() {
       _isRearCameraSelected = !_isRearCameraSelected;
