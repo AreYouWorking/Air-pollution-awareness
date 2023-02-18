@@ -311,13 +311,15 @@ class _CameraState extends State<Camera> with WidgetsBindingObserver {
                 alignment: AlignmentDirectional.bottomCenter,
                 child: Container(
                     padding: const EdgeInsets.fromLTRB(0.0, 24.0, 0.0, 24.0),
-                    child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: <Widget>[
+                    child: Material(
+                        color: Colors.transparent,
+                        child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: <Widget>[
                           getImagePickerButton(),
                           getCaptureButton(),
                           getFlipCameraButton()
-                        ]))),
+                        ])))),
             GestureDetector(
                 onScaleStart: (ScaleStartDetails scaleStartDetails) {
               _initZoomLevel = _currentZoomLevel;
@@ -460,7 +462,7 @@ showLoaderDialog(BuildContext context) {
       children: [
         const CircularProgressIndicator(),
         Container(
-            margin: const EdgeInsets.only(left: 7),
+            margin: const EdgeInsets.only(left: 24),
             child: const Text("Loading...")),
       ],
     ),
