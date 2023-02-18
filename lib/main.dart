@@ -165,7 +165,7 @@ class _MainScreen extends State<MainScreen> {
                             child: Text(
                           Userposition.display_place,
                           textScaleFactor: 0.7,
-                          overflow: TextOverflow.fade,
+                          overflow: TextOverflow.ellipsis,
                           maxLines: 1,
                         ))
                       ],
