@@ -1,5 +1,5 @@
-import 'package:app/api/aqicn/client.dart';
-import 'package:app/api/openmetro/client.dart';
+import 'package:app/api/aqicn/geofeed.dart';
+import 'package:app/api/openmetro/airquality.dart';
 import 'package:app/forecast/daily.dart';
 import 'package:app/forecast/hourly.dart';
 import 'package:app/forecast/today.dart';
@@ -25,13 +25,15 @@ DailyData _fromAqi(int aqi, DateTime datetime) {
 class ForecastData {
   Airquality? openmetro;
   Data? aqicn;
+  DateTime created;
 
-  ForecastData({this.openmetro, this.aqicn});
+  ForecastData({this.openmetro, this.aqicn, required this.created});
 
   static Future<ForecastData> init(String lat, String long) async {
     final openmetro = await getAirQuality5day(lat, long);
     final aqicn = await getData(lat, long);
-    return ForecastData(openmetro: openmetro, aqicn: aqicn);
+    return ForecastData(
+        created: DateTime.parse(aqicn.time.iso).toLocal(), openmetro: openmetro, aqicn: aqicn);
   }
 
   List<DailyData>? getDailyDatas() {

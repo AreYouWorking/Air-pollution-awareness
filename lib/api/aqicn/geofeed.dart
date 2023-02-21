@@ -93,7 +93,7 @@ class City {
 @JsonSerializable()
 class Iaqi {
   final IaqiValue co;
-  final IaqiValue dew;
+  final IaqiValue? dew;
   final IaqiValue h;
   final IaqiValue no2;
   final IaqiValue o3;
@@ -103,9 +103,10 @@ class Iaqi {
   final IaqiValue so2;
   final IaqiValue t;
   final IaqiValue w;
+  final IaqiValue? wg;
 
   Iaqi(this.co, this.dew, this.h, this.no2, this.o3, this.p, this.pm10,
-      this.pm25, this.so2, this.t, this.w);
+      this.pm25, this.so2, this.t, this.w, this.wg);
   factory Iaqi.fromJson(Map<String, dynamic> json) => _$IaqiFromJson(json);
   Map<String, dynamic> toJson() => _$IaqiToJson(this);
 }

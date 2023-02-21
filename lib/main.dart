@@ -44,7 +44,7 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreen extends State<MainScreen> {
   late Timer _everyHour;
-  ForecastData _forecastData = ForecastData();
+  ForecastData _forecastData = ForecastData(created: DateTime.now());
   int _selectedIndex = 1;
 
   void _onItemTapped(int index) {
@@ -54,6 +54,10 @@ class _MainScreen extends State<MainScreen> {
   }
 
   Future<void> _forecastUpdate() async {
+    setState(() {
+      _forecastData = ForecastData(created: _forecastData.created);
+    });
+
     var newForecastData =
         await ForecastData.init(Userposition.latitude, Userposition.longitude);
     setState(() {
@@ -146,7 +150,7 @@ class _MainScreen extends State<MainScreen> {
         index: _selectedIndex,
         children: [
           const Memory(),
-          Forecast(onRefresh: () async {}, data: _forecastData)
+          Forecast(onRefresh: _forecastUpdate, data: _forecastData)
         ],
       ),
       bottomNavigationBar: Container(

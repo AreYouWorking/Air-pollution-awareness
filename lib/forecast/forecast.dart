@@ -4,7 +4,7 @@ import 'package:app/forecast/hourly.dart';
 import 'package:app/forecast/today.dart';
 import 'package:flutter/material.dart';
 import 'package:app/style.dart' as style;
-
+import 'package:intl/intl.dart';
 
 class Forecast extends StatefulWidget {
   final ForecastData data;
@@ -29,8 +29,14 @@ class _ForecastState extends State<Forecast> {
             children: [
               infoCard("Today", Colors.transparent, 200,
                   TodayWidget(data: widget.data)),
-              infoCard("Daily", style.greyUI, 180, DailyWidget(data: widget.data)),
-              infoCard("Hourly", style.greyUI, 260, HourlyWidget(data: widget.data)),
+              infoCard(
+                  "Daily", style.greyUI, 180, DailyWidget(data: widget.data)),
+              infoCard(
+                  "Hourly", style.greyUI, 260, HourlyWidget(data: widget.data)),
+              Center(
+                child: Text(
+                    "Last update ${DateFormat.Hm().format(widget.data.created)}"),
+              )
             ],
           ),
         ),

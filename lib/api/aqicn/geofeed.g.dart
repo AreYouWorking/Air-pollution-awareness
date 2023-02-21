@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'client.dart';
+part of 'geofeed.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
@@ -77,7 +77,9 @@ Map<String, dynamic> _$CityToJson(City instance) => <String, dynamic>{
 
 Iaqi _$IaqiFromJson(Map<String, dynamic> json) => Iaqi(
       IaqiValue.fromJson(json['co'] as Map<String, dynamic>),
-      IaqiValue.fromJson(json['dew'] as Map<String, dynamic>),
+      json['dew'] == null
+          ? null
+          : IaqiValue.fromJson(json['dew'] as Map<String, dynamic>),
       IaqiValue.fromJson(json['h'] as Map<String, dynamic>),
       IaqiValue.fromJson(json['no2'] as Map<String, dynamic>),
       IaqiValue.fromJson(json['o3'] as Map<String, dynamic>),
@@ -87,6 +89,9 @@ Iaqi _$IaqiFromJson(Map<String, dynamic> json) => Iaqi(
       IaqiValue.fromJson(json['so2'] as Map<String, dynamic>),
       IaqiValue.fromJson(json['t'] as Map<String, dynamic>),
       IaqiValue.fromJson(json['w'] as Map<String, dynamic>),
+      json['wg'] == null
+          ? null
+          : IaqiValue.fromJson(json['wg'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$IaqiToJson(Iaqi instance) => <String, dynamic>{
@@ -101,6 +106,7 @@ Map<String, dynamic> _$IaqiToJson(Iaqi instance) => <String, dynamic>{
       'so2': instance.so2,
       't': instance.t,
       'w': instance.w,
+      'wg': instance.wg,
     };
 
 IaqiValue _$IaqiValueFromJson(Map<String, dynamic> json) => IaqiValue(
