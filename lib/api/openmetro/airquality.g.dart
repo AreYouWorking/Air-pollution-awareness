@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'airquality.dart';
+part of 'client.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator

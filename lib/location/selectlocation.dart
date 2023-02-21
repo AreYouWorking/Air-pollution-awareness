@@ -2,13 +2,9 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
-import 'package:geocoding/geocoding.dart';
-import 'package:app/aqicn/geofeed.dart' as aqicn;
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
-import 'package:json_annotation/json_annotation.dart';
 
 import 'userposition.dart';
 

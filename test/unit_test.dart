@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:app/openmetro/airquality.dart';
+import 'package:app/api/openmetro/client.dart';
 import 'package:intl/intl.dart';
 
 import 'package:app/location/selectlocation.dart';

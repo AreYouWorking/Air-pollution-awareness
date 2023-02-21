@@ -7,11 +7,13 @@ import 'package:json_annotation/json_annotation.dart';
 part 'airquality.g.dart';
 // flutter pub run build_runner build --delete-conflicting-outputs
 
-Future<http.Response> fetchAitQuality(String lat, String long, String startDate, String endDate) async {
-  const base = "https://air-quality-api.open-meteo.com/v1/air-quality";
+const base = "https://air-quality-api.open-meteo.com/v1/air-quality";
+
+Future<http.Response> fetchAitQuality(
+    String lat, String long, String startDate, String endDate) async {
   String params =
       "?latitude=$lat&longitude=$long&hourly=us_aqi_pm2_5&timezone=Asia%2FBangkok&start_date=$startDate&end_date=$endDate";
-  
+
   print(base + params);
   return http.get(Uri.parse(base + params));
 }
@@ -38,10 +40,18 @@ class Airquality {
   final HourlyUnits hourly_units;
   final Hourly hourly;
 
-  Airquality(this.latitude, this.longitude, this.generationtime_ms,
-      this.utc_offset_seconds, this.timezone, this.timezone_abbreviation, this.hourly_units, this.hourly);
-  
-  factory Airquality.fromJson(Map<String, dynamic> json) => _$AirqualityFromJson(json);
+  Airquality(
+      this.latitude,
+      this.longitude,
+      this.generationtime_ms,
+      this.utc_offset_seconds,
+      this.timezone,
+      this.timezone_abbreviation,
+      this.hourly_units,
+      this.hourly);
+
+  factory Airquality.fromJson(Map<String, dynamic> json) =>
+      _$AirqualityFromJson(json);
   Map<String, dynamic> toJson() => _$AirqualityToJson(this);
 }
 
@@ -52,8 +62,9 @@ class HourlyUnits {
   final String us_aqi_pm2_5;
 
   HourlyUnits(this.time, this.us_aqi_pm2_5);
-  
-  factory HourlyUnits.fromJson(Map<String, dynamic> json) => _$HourlyUnitsFromJson(json);
+
+  factory HourlyUnits.fromJson(Map<String, dynamic> json) =>
+      _$HourlyUnitsFromJson(json);
   Map<String, dynamic> toJson() => _$HourlyUnitsToJson(this);
 }
 

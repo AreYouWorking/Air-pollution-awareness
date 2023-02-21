@@ -6,11 +6,12 @@ import 'package:json_annotation/json_annotation.dart';
 
 part "geofeed.g.dart";
 
-Future<http.Response> geofeedLatLng(String lat, String long, String token) async {
-  const base = "https://api.waqi.info/feed/geo";
-  String params =
-      ":$lat;$long/?token=$token";
-  
+const base = "https://api.waqi.info/feed/geo";
+
+Future<http.Response> geofeedLatLng(
+    String lat, String long, String token) async {
+  String params = ":$lat;$long/?token=$token";
+
   print(base + params);
   return http.get(Uri.parse(base + params));
 }
@@ -21,7 +22,7 @@ Future<Data> getData(String lat, String long) async {
     throw Exception("Please set AQICN_KEY in .env file");
   }
   http.Response resp = await geofeedLatLng(lat, long, token);
-  return Response.fromJson(jsonDecode(resp.body)).data; 
+  return Response.fromJson(jsonDecode(resp.body)).data;
 }
 
 @JsonSerializable()
@@ -31,7 +32,8 @@ class Response {
 
   Response(this.status, this.data);
 
-  factory Response.fromJson(Map<String, dynamic> json) => _$ResponseFromJson(json);
+  factory Response.fromJson(Map<String, dynamic> json) =>
+      _$ResponseFromJson(json);
   Map<String, dynamic> toJson() => _$ResponseToJson(this);
 }
 
@@ -41,13 +43,14 @@ class Data {
   final int idx;
   final List<Attr> attributions;
   final City city;
-  final String dominentpol; 
+  final String dominentpol;
   final Iaqi iaqi;
   final Time time;
   final Forecast forecast;
   final Debug debug;
 
-  Data(this.aqi, this.idx, this.attributions, this.city, this.dominentpol, this.iaqi, this.time, this.forecast, this.debug);
+  Data(this.aqi, this.idx, this.attributions, this.city, this.dominentpol,
+      this.iaqi, this.time, this.forecast, this.debug);
 
   factory Data.fromJson(Map<String, dynamic> json) => _$DataFromJson(json);
   Map<String, dynamic> toJson() => _$DataToJson(this);
@@ -101,7 +104,8 @@ class Iaqi {
   final IaqiValue t;
   final IaqiValue w;
 
-  Iaqi(this.co, this.dew, this.h, this.no2, this.o3, this.p, this.pm10, this.pm25, this.so2, this.t, this.w);
+  Iaqi(this.co, this.dew, this.h, this.no2, this.o3, this.p, this.pm10,
+      this.pm25, this.so2, this.t, this.w);
   factory Iaqi.fromJson(Map<String, dynamic> json) => _$IaqiFromJson(json);
   Map<String, dynamic> toJson() => _$IaqiToJson(this);
 }
@@ -111,7 +115,8 @@ class IaqiValue {
   final double v;
 
   IaqiValue(this.v);
-  factory IaqiValue.fromJson(Map<String, dynamic> json) => _$IaqiValueFromJson(json);
+  factory IaqiValue.fromJson(Map<String, dynamic> json) =>
+      _$IaqiValueFromJson(json);
   Map<String, dynamic> toJson() => _$IaqiValueToJson(this);
 }
 
@@ -132,7 +137,8 @@ class Forecast {
   final Daily daily;
 
   Forecast(this.daily);
-  factory Forecast.fromJson(Map<String, dynamic> json) => _$ForecastFromJson(json);
+  factory Forecast.fromJson(Map<String, dynamic> json) =>
+      _$ForecastFromJson(json);
   Map<String, dynamic> toJson() => _$ForecastToJson(this);
 }
 
@@ -156,6 +162,7 @@ class DataPoint {
   final int min;
 
   DataPoint(this.avg, this.day, this.max, this.min);
-  factory DataPoint.fromJson(Map<String, dynamic> json) => _$DataPointFromJson(json);
+  factory DataPoint.fromJson(Map<String, dynamic> json) =>
+      _$DataPointFromJson(json);
   Map<String, dynamic> toJson() => _$DataPointToJson(this);
 }

@@ -1,11 +1,10 @@
 import 'dart:io';
 
 import 'package:app/Camera.dart';
-import 'package:app/main.dart';
 import 'package:flutter/material.dart';
 import 'package:photo_gallery/photo_gallery.dart';
 import 'package:permission_handler/permission_handler.dart';
-
+import 'package:app/style.dart' as style;
 import 'package:app/memory/displayphoto.dart';
 
 class Memory extends StatefulWidget {
@@ -81,7 +80,7 @@ class _MemoryState extends State<Memory> {
                 width: double.infinity,
                 height: 175,
                 decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(15), color: greyUI),
+                    borderRadius: BorderRadius.circular(15), color: style.greyUI),
                 child: const Icon(
                   Icons.camera_alt,
                   size: 50,

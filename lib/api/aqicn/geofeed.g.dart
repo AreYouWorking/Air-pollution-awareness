@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'geofeed.dart';
+part of 'client.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
