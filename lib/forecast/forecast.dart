@@ -19,6 +19,10 @@ class Forecast extends StatefulWidget {
 class _ForecastState extends State<Forecast> {
   @override
   Widget build(BuildContext context) {
+    String lastUpdated = widget.data.created == null
+        ? ""
+        : "Last update ${DateFormat.Hm().format(widget.data.created!)}";
+
     return RefreshIndicator(
       onRefresh: widget.onRefresh,
       child: SingleChildScrollView(
@@ -34,8 +38,7 @@ class _ForecastState extends State<Forecast> {
               infoCard(
                   "Hourly", style.greyUI, 260, HourlyWidget(data: widget.data)),
               Center(
-                child: Text(
-                    "Last update ${DateFormat.Hm().format(widget.data.created)}"),
+                child: Text(lastUpdated),
               )
             ],
           ),

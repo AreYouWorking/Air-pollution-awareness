@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:gallery_saver/gallery_saver.dart';
+import 'package:share_plus/share_plus.dart';
 
 class PhotoEditor extends StatefulWidget {
   const PhotoEditor({super.key, required this.image});
@@ -106,6 +107,17 @@ class _PhotoEditorState extends State<PhotoEditor> {
               foregroundColor: Colors.white,
               onPressed: !_isSaving ? _savePicture : null,
               child: const Icon(Icons.save),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(8, 8, 4, 20),
+            child: FloatingActionButton(
+              backgroundColor: const ui.Color.fromARGB(255, 255, 60, 0),
+              foregroundColor: Colors.white,
+              onPressed: () {
+                Share.shareXFiles([XFile(widget.image.path)]);
+              },
+              child: const Icon(Icons.share),
             ),
           )
         ]));

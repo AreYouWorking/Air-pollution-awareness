@@ -25,9 +25,9 @@ DailyData _fromAqi(int aqi, DateTime datetime) {
 class ForecastData {
   Airquality? openmetro;
   Data? aqicn;
-  DateTime created;
+  DateTime? created;
 
-  ForecastData({this.openmetro, this.aqicn, required this.created});
+  ForecastData({this.openmetro, this.aqicn, this.created});
 
   static Future<ForecastData> init(String lat, String long) async {
     final openmetro = await getAirQuality5day(lat, long);

@@ -44,7 +44,7 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreen extends State<MainScreen> {
   late Timer _everyHour;
-  ForecastData _forecastData = ForecastData(created: DateTime.now());
+  ForecastData _forecastData = ForecastData();
   int _selectedIndex = 1;
 
   void _onItemTapped(int index) {
