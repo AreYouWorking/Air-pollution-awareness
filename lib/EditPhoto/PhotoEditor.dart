@@ -7,6 +7,7 @@ import 'package:flutter/rendering.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:gallery_saver/gallery_saver.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:palette_generator/palette_generator.dart';
 
 class PhotoEditor extends StatefulWidget {
   const PhotoEditor({super.key, required this.image});
@@ -18,6 +19,8 @@ class PhotoEditor extends StatefulWidget {
 }
 
 class _PhotoEditorState extends State<PhotoEditor> {
+  Future<Color>? _dominantColorFuture;
+
   final GlobalKey _globalKey = GlobalKey();
 
   OverlaidWidget? _activeItem;
@@ -33,6 +36,12 @@ class _PhotoEditorState extends State<PhotoEditor> {
   late bool _inAction;
 
   bool _isSaving = false;
+
+  Future<Color>? _getImagePalette(ImageProvider imageProvider) async {
+    final PaletteGenerator paletteGenerator =
+        await PaletteGenerator.fromImageProvider(imageProvider);
+    return paletteGenerator.dominantColor!.color;
+  }
 
   Future<void> _savePicture() async {
     setState(() {
@@ -59,68 +68,129 @@ class _PhotoEditorState extends State<PhotoEditor> {
     });
   }
 
+  @override
+  void initState() {
+    _dominantColorFuture = _getImagePalette(FileImage(widget.image));
+    super.initState();
+  }
+
   // https://www.youtube.com/watch?v=PTyvarfJiW8
   @override
   Widget build(BuildContext context) {
     final screen = MediaQuery.of(context).size;
     return Scaffold(
-        appBar: AppBar(
-          title: const Text('Editing Photo'),
-          backgroundColor: Colors.black,
-        ),
-        body: GestureDetector(
-            onScaleStart: (details) {
-              if (_activeItem == null) return;
+        backgroundColor: Colors.black,
+        body: Stack(children: <Widget>[
+          FutureBuilder<Color>(
+              future: _dominantColorFuture,
+              builder: (BuildContext context, AsyncSnapshot<Color> snapshot) {
+                if (snapshot.hasData) {
+                  return Container(color: snapshot.data);
+                } else {
+                  return Container(color: Colors.black);
+                }
+              }),
+          // Photo Editing area
+          GestureDetector(
+              onScaleStart: (details) {
+                if (_activeItem == null) return;
 
-              _initPos = details.focalPoint;
-              _currentPos = _activeItem!.position;
-              _currentScale = _activeItem!.scale;
-              _currentRotation = _activeItem!.rotation;
-            },
-            onScaleUpdate: (details) {
-              if (_activeItem == null) return;
-              final delta = details.focalPoint - _initPos;
-              final left = (delta.dx / screen.width) + _currentPos.dx;
-              final top = (delta.dy / screen.height) + _currentPos.dy;
-
-              setState(() {
-                _activeItem!.position = Offset(left, top);
-                _activeItem!.rotation = details.rotation + _currentRotation;
-                _activeItem!.scale = details.scale * _currentScale;
-              });
-            },
-            child: RepaintBoundary(
-                key: _globalKey,
-                child: Stack(children: [
-                  Container(color: Colors.black),
-                  Image.file(widget.image),
-                  ...mockData.map(_buildItemWidget).toList(),
-
-                  // Image.file(widget.image),
-                ]))),
-        floatingActionButton:
-            Column(mainAxisAlignment: MainAxisAlignment.end, children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.fromLTRB(8, 8, 4, 20),
-            child: FloatingActionButton(
-              backgroundColor: const ui.Color.fromARGB(255, 255, 60, 0),
-              foregroundColor: Colors.white,
-              onPressed: !_isSaving ? _savePicture : null,
-              child: const Icon(Icons.save),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(8, 8, 4, 20),
-            child: FloatingActionButton(
-              backgroundColor: const ui.Color.fromARGB(255, 255, 60, 0),
-              foregroundColor: Colors.white,
-              onPressed: () {
-                Share.shareXFiles([XFile(widget.image.path)]);
+                _initPos = details.focalPoint;
+                _currentPos = _activeItem!.position;
+                _currentScale = _activeItem!.scale;
+                _currentRotation = _activeItem!.rotation;
               },
-              child: const Icon(Icons.share),
-            ),
-          )
+              onScaleUpdate: (details) {
+                if (_activeItem == null) return;
+                final delta = details.focalPoint - _initPos;
+                final left = (delta.dx / screen.width) + _currentPos.dx;
+                final top = (delta.dy / screen.height) + _currentPos.dy;
+
+                setState(() {
+                  _activeItem!.position = Offset(left, top);
+                  _activeItem!.rotation = details.rotation + _currentRotation;
+                  _activeItem!.scale = details.scale * _currentScale;
+                });
+              },
+              child: Align(
+                  alignment: Alignment.center,
+                  child: RepaintBoundary(
+                      key: _globalKey,
+                      child: Stack(children: [
+                        Image.file(widget.image),
+                        ...mockData.map(_buildItemWidget).toList(),
+                      ])))),
+          _getTopMenu(),
+          _getBottomMenu()
         ]));
+  }
+
+  Widget _getTopMenu() {
+    return Align(
+        alignment: AlignmentDirectional.topCenter,
+        child: Container(
+            padding: const EdgeInsets.fromLTRB(24.0, 24.0, 24.0, 24.0),
+            child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  // Go back
+                  ElevatedButton(
+                      onPressed: () {
+                        // TODO: show confirm dialog before going back
+                        if (!mounted) return;
+                        Navigator.pop(context);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        shape: const CircleBorder(),
+                        padding: const EdgeInsets.all(12),
+                        backgroundColor: const Color(0x64000000),
+                        // <-- Button color
+                        foregroundColor: Colors.white, // <-- Splash color
+                      ),
+                      child: const Icon(Icons.arrow_back_ios_new, size: 28)),
+                  Wrap(
+                      spacing: 8,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: <Widget>[
+                        // Share
+                        ElevatedButton(
+                            onPressed: () {
+                              // TODO: Share the edited photo, not the photo file
+                              Share.shareXFiles([XFile(widget.image.path)]);
+                            },
+                            style: ElevatedButton.styleFrom(
+                              shape: const CircleBorder(),
+                              padding: const EdgeInsets.all(12),
+                              backgroundColor: const Color(0x64000000),
+                              // <-- Button color
+                              foregroundColor: Colors.white, // <-- Splash color
+                            ),
+                            child: const Icon(Icons.ios_share, size: 32)),
+                        // Save
+                        ElevatedButton(
+                            onPressed: !_isSaving ? _savePicture : null,
+                            style: ElevatedButton.styleFrom(
+                              shape: const CircleBorder(),
+                              padding: const EdgeInsets.all(12),
+                              backgroundColor: const Color(0x64000000),
+                              // <-- Button color
+                              foregroundColor: Colors.white, // <-- Splash color
+                            ),
+                            child: const Icon(Icons.save_alt, size: 32)),
+                      ]),
+                ])));
+  }
+
+  Widget _getBottomMenu() {
+    return Align(
+        alignment: AlignmentDirectional.bottomCenter,
+        child: Container(
+            padding: const EdgeInsets.fromLTRB(0.0, 24.0, 0.0, 24.0),
+            child: Material(
+                color: Colors.transparent,
+                child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: <Widget>[]))));
   }
 
   Widget _buildItemWidget(OverlaidWidget e) {

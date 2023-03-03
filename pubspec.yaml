@@ -55,6 +55,7 @@ dependencies:
   photo_gallery: ^1.1.1
   loading_animation_widget: ^1.2.0+4
   share_plus: ^6.3.1
+  palette_generator: ^0.3.3+2
 
 dev_dependencies:
   integration_test:
