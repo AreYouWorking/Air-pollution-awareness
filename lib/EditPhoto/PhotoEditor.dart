@@ -20,6 +20,8 @@ class PhotoEditor extends StatefulWidget {
 
 class _PhotoEditorState extends State<PhotoEditor> {
   Future<Color>? _dominantColorFuture;
+  Size? _editingAreaSize;
+  double? _aspectRatio;
 
   final GlobalKey _globalKey = GlobalKey();
 
@@ -41,6 +43,19 @@ class _PhotoEditorState extends State<PhotoEditor> {
     final PaletteGenerator paletteGenerator =
         await PaletteGenerator.fromImageProvider(imageProvider);
     return paletteGenerator.dominantColor!.color;
+  }
+
+  void _setEditingAreaSize() async {
+    var decodedImage =
+        await decodeImageFromList(widget.image.readAsBytesSync());
+    if (!mounted) return;
+    double aspectRatio = decodedImage.width / decodedImage.height;
+    double editingAreaWidth = MediaQuery.of(context).size.width;
+    double editingAreaHeight = editingAreaWidth * (1 / aspectRatio);
+    setState(() {
+      _aspectRatio = aspectRatio;
+      _editingAreaSize = Size(editingAreaWidth, editingAreaHeight);
+    });
   }
 
   Future<void> _savePicture() async {
@@ -71,6 +86,7 @@ class _PhotoEditorState extends State<PhotoEditor> {
   @override
   void initState() {
     _dominantColorFuture = _getImagePalette(FileImage(widget.image));
+    _setEditingAreaSize();
     super.initState();
   }
 
@@ -78,18 +94,10 @@ class _PhotoEditorState extends State<PhotoEditor> {
   @override
   Widget build(BuildContext context) {
     final screen = MediaQuery.of(context).size;
+    final photoAspectRatio = _aspectRatio;
     return Scaffold(
         backgroundColor: Colors.black,
         body: Stack(children: <Widget>[
-          FutureBuilder<Color>(
-              future: _dominantColorFuture,
-              builder: (BuildContext context, AsyncSnapshot<Color> snapshot) {
-                if (snapshot.hasData) {
-                  return Container(color: snapshot.data);
-                } else {
-                  return Container(color: Colors.black);
-                }
-              }),
           // Photo Editing area
           GestureDetector(
               onScaleStart: (details) {
@@ -113,15 +121,44 @@ class _PhotoEditorState extends State<PhotoEditor> {
                 });
               },
               child: Align(
-                  alignment: Alignment.center,
-                  child: RepaintBoundary(
-                      key: _globalKey,
-                      child: Stack(children: [
-                        Image.file(widget.image),
-                        ...mockData.map(_buildItemWidget).toList(),
-                      ])))),
+                alignment: (() {
+                  if (photoAspectRatio != null) {
+                    if ((photoAspectRatio - 9 / 16).abs() < 0.1) {
+                      return AlignmentDirectional.topCenter;
+                    }
+                  }
+
+                  return AlignmentDirectional.center;
+                }()),
+                child: SizedBox(
+                    width: screen.width,
+                    height: _editingAreaSize?.height,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(16.0),
+                      child: RepaintBoundary(
+                          key: _globalKey,
+                          child: Stack(
+                              clipBehavior: Clip.antiAlias,
+                              children: <Widget>[
+                                FutureBuilder<Color>(
+                                    future: _dominantColorFuture,
+                                    builder: (BuildContext context,
+                                        AsyncSnapshot<Color> snapshot) {
+                                      if (snapshot.hasData) {
+                                        return Container(color: snapshot.data);
+                                      } else {
+                                        return Container(color: Colors.black);
+                                      }
+                                    }),
+                                Transform.scale(
+                                    // TODO: Implement Zoom
+                                    scale: 1,
+                                    child: Image.file(widget.image)),
+                                ...mockData.map(_buildItemWidget).toList(),
+                              ])),
+                    )),
+              )),
           _getTopMenu(),
-          _getBottomMenu()
         ]));
   }
 
@@ -129,68 +166,55 @@ class _PhotoEditorState extends State<PhotoEditor> {
     return Align(
         alignment: AlignmentDirectional.topCenter,
         child: Container(
-            padding: const EdgeInsets.fromLTRB(24.0, 24.0, 24.0, 24.0),
+            padding: const EdgeInsets.fromLTRB(8.0, 24.0, 8.0, 24.0),
             child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
                   // Go back
-                  ElevatedButton(
-                      onPressed: () {
-                        // TODO: show confirm dialog before going back
-                        if (!mounted) return;
-                        Navigator.pop(context);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        shape: const CircleBorder(),
-                        padding: const EdgeInsets.all(12),
-                        backgroundColor: const Color(0x64000000),
-                        // <-- Button color
-                        foregroundColor: Colors.white, // <-- Splash color
-                      ),
-                      child: const Icon(Icons.arrow_back_ios_new, size: 28)),
+                  _circularButton(() {
+                    // TODO: show confirm dialog before going back
+                    if (!mounted) return;
+                    Navigator.pop(context);
+                  }, const Color(0x64000000),
+                      const Icon(Icons.arrow_back_ios_new, size: 28)),
                   Wrap(
-                      spacing: 8,
+                      spacing: 2,
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: <Widget>[
+                        _circularButton(() {}, const Color(0x64000000),
+                            const Text("T", style: TextStyle(fontSize: 28))),
+                        _circularButton(() {}, const Color(0x64000000),
+                            const Icon(Icons.sticky_note_2_outlined, size: 32)),
                         // Share
-                        ElevatedButton(
-                            onPressed: () {
-                              // TODO: Share the edited photo, not the photo file
-                              Share.shareXFiles([XFile(widget.image.path)]);
-                            },
-                            style: ElevatedButton.styleFrom(
-                              shape: const CircleBorder(),
-                              padding: const EdgeInsets.all(12),
-                              backgroundColor: const Color(0x64000000),
-                              // <-- Button color
-                              foregroundColor: Colors.white, // <-- Splash color
-                            ),
-                            child: const Icon(Icons.ios_share, size: 32)),
+                        _circularButton(() {
+                          // TODO: Share the edited photo, not the photo file
+                          Share.shareXFiles([XFile(widget.image.path)]);
+                        }, const Color(0x64000000),
+                            const Icon(Icons.ios_share, size: 32)),
                         // Save
-                        ElevatedButton(
-                            onPressed: !_isSaving ? _savePicture : null,
-                            style: ElevatedButton.styleFrom(
-                              shape: const CircleBorder(),
-                              padding: const EdgeInsets.all(12),
-                              backgroundColor: const Color(0x64000000),
-                              // <-- Button color
-                              foregroundColor: Colors.white, // <-- Splash color
-                            ),
-                            child: const Icon(Icons.save_alt, size: 32)),
+                        _circularButton(
+                            !_isSaving ? _savePicture : null,
+                            const Color(0x64000000),
+                            const Icon(Icons.save_alt, size: 32)),
                       ]),
                 ])));
   }
 
-  Widget _getBottomMenu() {
-    return Align(
-        alignment: AlignmentDirectional.bottomCenter,
-        child: Container(
-            padding: const EdgeInsets.fromLTRB(0.0, 24.0, 0.0, 24.0),
-            child: Material(
-                color: Colors.transparent,
-                child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: <Widget>[]))));
+  Widget _circularButton(
+    void Function()? onPressed,
+    Color buttonColor,
+    Widget icon,
+  ) {
+    return ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          shape: const CircleBorder(),
+          padding: const EdgeInsets.all(12),
+          backgroundColor: buttonColor,
+          // <-- Button color
+          foregroundColor: Colors.white, // <-- Splash color
+        ),
+        child: icon);
   }
 
   Widget _buildItemWidget(OverlaidWidget e) {

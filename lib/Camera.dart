@@ -273,7 +273,8 @@ class _CameraState extends State<Camera> with WidgetsBindingObserver {
                 scale: 1.0,
                 child: AspectRatio(
                   aspectRatio: _currentAspectRatio.value,
-                  child: ClipRect(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16.0),
                     child: OverflowBox(
                       alignment: Alignment.center,
                       child: FittedBox(
