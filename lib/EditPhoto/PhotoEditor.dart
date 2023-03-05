@@ -2,6 +2,11 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
+import 'package:app/EditPhoto/aqi_widget.dart';
+import 'package:app/EditPhoto/aqi_widget_emoji.dart';
+import 'package:app/EditPhoto/recommedation_text1.dart';
+import 'package:app/EditPhoto/recommedation_text2.dart';
+import 'package:app/EditPhoto/text_widget_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:path_provider/path_provider.dart';
@@ -35,7 +40,7 @@ class _PhotoEditorState extends State<PhotoEditor> {
 
   late double _currentRotation;
 
-  late bool _inAction;
+  bool? _inAction;
 
   bool _isSaving = false;
 
@@ -220,15 +225,6 @@ class _PhotoEditorState extends State<PhotoEditor> {
   Widget _buildItemWidget(OverlaidWidget e) {
     final screen = MediaQuery.of(context).size;
 
-    Widget widget;
-    switch (e.type) {
-      case ItemType.Text:
-        widget = Text(
-          e.value,
-          style: TextStyle(color: Colors.white),
-        );
-    }
-
     return Positioned(
       top: e.position.dy * screen.height,
       left: e.position.dx * screen.width,
@@ -238,7 +234,8 @@ class _PhotoEditorState extends State<PhotoEditor> {
           angle: e.rotation,
           child: Listener(
             onPointerDown: (details) {
-              if (_inAction) return;
+              if (_inAction == null) return;
+              if (_inAction == true) return;
               _inAction = true;
               _activeItem = e;
               _initPos = details.position;
@@ -249,7 +246,7 @@ class _PhotoEditorState extends State<PhotoEditor> {
             onPointerUp: (details) {
               _inAction = false;
             },
-            child: widget,
+            child: e.widget,
           ),
         ),
       ),
@@ -257,27 +254,39 @@ class _PhotoEditorState extends State<PhotoEditor> {
   }
 }
 
-enum ItemType { Text }
-
 class OverlaidWidget {
   Offset position = Offset(0.1, 0.1);
   double scale = 1.0;
   double rotation = 0.0;
-  late ItemType type;
-  late dynamic value;
+  Widget? widget;
 }
 
 final mockData = [
   OverlaidWidget()
-    ..type = ItemType.Text
-    ..value = "AQI 185"
+    ..widget = const AqiWidget(
+      aqi: 80,
+      defaultVariation: 1,
+    )
     ..position = Offset(0.1, 0.2),
   OverlaidWidget()
-    ..type = ItemType.Text
-    ..value = "ลมไม่แรง 1.0 กม./ชม."
-    ..position = Offset(0.1, 0.3),
+    ..widget = const AqiWidgetEmoji(
+      aqi: 80,
+      defaultVariation: 1,
+    )
+    ..position = Offset(0.1, 0.2),
   OverlaidWidget()
-    ..type = ItemType.Text
-    ..value = "5 จุดความร้อนใกล้ฉัน"
-    ..position = Offset(0.1, 0.4)
+    ..widget = const RecommendationText2(
+      aqi: 40,
+      defaultVariation: 0,
+      iconOrNoIcon: true,
+    )
+    ..position = Offset(0.1, 0.5),
+  // OverlaidWidget()
+  //   ..type = ItemType.Text
+  //   ..value = "ลมไม่แรง 1.0 กม./ชม."
+  //   ..position = Offset(0.1, 0.3),
+  // OverlaidWidget()
+  //   ..type = ItemType.Text
+  //   ..value = "5 จุดความร้อนใกล้ฉัน"
+  //   ..position = Offset(0.1, 0.4)
 ];

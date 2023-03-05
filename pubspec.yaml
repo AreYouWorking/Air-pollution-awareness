@@ -56,6 +56,8 @@ dependencies:
   loading_animation_widget: ^1.2.0+4
   share_plus: ^6.3.1
   palette_generator: ^0.3.3+2
+  google_fonts: ^4.0.3
+  flutter_svg: ^2.0.2
 
 dev_dependencies:
   integration_test:
@@ -90,6 +92,7 @@ flutter:
   #   - images/a_dot_ham.jpeg
   assets:
     - .env
+    - assets/icons/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
