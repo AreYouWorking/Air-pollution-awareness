@@ -27,9 +27,11 @@ class _PhotoEditorState extends State<PhotoEditor> {
   Future<Color>? _dominantColorFuture;
   Size? _editingAreaSize;
   double? _aspectRatio;
+  bool? _isTemplateChangeAllowed;
 
   final GlobalKey _globalKey = GlobalKey();
 
+  final PageController _pageController = PageController(initialPage: 0);
   OverlaidWidget? _activeItem;
 
   late Offset _initPos;
@@ -159,7 +161,25 @@ class _PhotoEditorState extends State<PhotoEditor> {
                                     // TODO: Implement Zoom
                                     scale: 1,
                                     child: Image.file(widget.image)),
-                                ...mockData.map(_buildItemWidget).toList(),
+                                PageView(
+                                  controller: _pageController,
+                                  scrollDirection: Axis.horizontal,
+                                  physics: _isTemplateChangeAllowed == true
+                                      ? const AlwaysScrollableScrollPhysics()
+                                      : const NeverScrollableScrollPhysics(),
+                                  children: [
+                                    // TODO: Add all template
+                                    Stack(
+                                        children: mockData
+                                            .map(_buildItemWidget)
+                                            .toList()), // Template1
+                                    Stack(
+                                        children: mockData
+                                            .map(_buildItemWidget)
+                                            .toList()), // Template2
+                                    //Template 3..8
+                                  ],
+                                )
                               ])),
                     )),
               )),
@@ -242,9 +262,16 @@ class _PhotoEditorState extends State<PhotoEditor> {
               _currentPos = e.position;
               _currentScale = e.scale;
               _currentRotation = e.rotation;
+
+              setState(() {
+                _isTemplateChangeAllowed = false;
+              });
             },
             onPointerUp: (details) {
               _inAction = false;
+              setState(() {
+                _isTemplateChangeAllowed = true;
+              });
             },
             child: e.widget,
           ),
