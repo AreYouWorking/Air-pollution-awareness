@@ -2,17 +2,20 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
-import 'package:app/EditPhoto/aqi_widget.dart';
-import 'package:app/EditPhoto/aqi_widget_emoji.dart';
-import 'package:app/EditPhoto/recommedation_text1.dart';
-import 'package:app/EditPhoto/recommedation_text2.dart';
-import 'package:app/EditPhoto/text_widget_icon.dart';
+import 'package:app/EditPhoto/templates.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:gallery_saver/gallery_saver.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:palette_generator/palette_generator.dart';
+
+class OverlaidWidget {
+  Offset position = Offset(0.1, 0.1);
+  double scale = 1.0;
+  double rotation = 0.0;
+  Widget? widget;
+}
 
 class PhotoEditor extends StatefulWidget {
   const PhotoEditor({super.key, required this.image});
@@ -24,25 +27,24 @@ class PhotoEditor extends StatefulWidget {
 }
 
 class _PhotoEditorState extends State<PhotoEditor> {
+  List<List<OverlaidWidget>> _templates = [template1, template2];
+
   Future<Color>? _dominantColorFuture;
   Size? _editingAreaSize;
   double? _aspectRatio;
+
   bool _isTemplateChangeAllowed = true;
   bool _hideMenu = false;
 
   final GlobalKey _globalKey = GlobalKey();
 
-  final PageController _pageController = PageController(initialPage: 0);
+  final PageController _pageController = PageController(initialPage: 999);
+
   OverlaidWidget? _activeItem;
-
   late Offset _initPos;
-
   late Offset _currentPos;
-
   late double _currentScale;
-
   late double _currentRotation;
-
   bool? _inAction;
 
   bool _isSaving = false;
@@ -94,7 +96,6 @@ class _PhotoEditorState extends State<PhotoEditor> {
   @override
   void initState() {
     _dominantColorFuture = _getImagePalette(FileImage(widget.image));
-    _pageController.addListener(_templateScrollListener);
     _setEditingAreaSize();
     super.initState();
   }
@@ -103,20 +104,6 @@ class _PhotoEditorState extends State<PhotoEditor> {
   void dispose() {
     _pageController.dispose();
     super.dispose();
-  }
-
-  _templateScrollListener() {
-    setState(() {
-      if (_pageController.offset >= _pageController.position.maxScrollExtent ||
-          _pageController.offset <= _pageController.position.minScrollExtent) {
-        // Is done scrolling?
-        _hideMenu = false;
-      } else if (_pageController.position.userScrollDirection !=
-          ScrollDirection.idle) {
-        // Is scrolling?
-        _hideMenu = true;
-      }
-    });
   }
 
   // https://www.youtube.com/watch?v=PTyvarfJiW8
@@ -170,43 +157,54 @@ class _PhotoEditorState extends State<PhotoEditor> {
                       borderRadius: BorderRadius.circular(16.0),
                       child: RepaintBoundary(
                           key: _globalKey,
-                          child: Stack(
-                              clipBehavior: Clip.antiAlias,
-                              children: <Widget>[
-                                FutureBuilder<Color>(
-                                    future: _dominantColorFuture,
-                                    builder: (BuildContext context,
-                                        AsyncSnapshot<Color> snapshot) {
-                                      if (snapshot.hasData) {
-                                        return Container(color: snapshot.data);
-                                      } else {
-                                        return Container(color: Colors.black);
-                                      }
-                                    }),
-                                Transform.scale(
-                                    // TODO: Implement Zoom
-                                    scale: 1,
-                                    child: Image.file(widget.image)),
-                                PageView(
-                                  controller: _pageController,
-                                  scrollDirection: Axis.horizontal,
-                                  physics: _isTemplateChangeAllowed == true
-                                      ? const AlwaysScrollableScrollPhysics()
-                                      : const NeverScrollableScrollPhysics(),
-                                  children: [
-                                    // TODO: Add all template
-                                    Stack(
-                                        children: mockData
+                          child: Stack(clipBehavior: Clip.antiAlias, children: <
+                              Widget>[
+                            FutureBuilder<Color>(
+                                future: _dominantColorFuture,
+                                builder: (BuildContext context,
+                                    AsyncSnapshot<Color> snapshot) {
+                                  if (snapshot.hasData) {
+                                    return Container(color: snapshot.data);
+                                  } else {
+                                    return Container(color: Colors.black);
+                                  }
+                                }),
+                            Transform.scale(
+                                // TODO: Implement Zoom
+                                scale: 1,
+                                child: Image.file(widget.image)),
+                            NotificationListener<ScrollNotification>(
+                              onNotification: (scrollNotification) {
+                                if (scrollNotification
+                                    is ScrollStartNotification) {
+                                  setState(() {
+                                    _hideMenu = true;
+                                  });
+                                } else if (scrollNotification
+                                    is ScrollEndNotification) {
+                                  setState(() {
+                                    _hideMenu = false;
+                                  });
+                                }
+                                return true;
+                              },
+                              child: PageView.builder(
+                                controller: _pageController,
+                                scrollDirection: Axis.horizontal,
+                                physics: _isTemplateChangeAllowed == true
+                                    ? const AlwaysScrollableScrollPhysics()
+                                    : const NeverScrollableScrollPhysics(),
+                                itemBuilder: (BuildContext context, int index) {
+                                  return Stack(
+                                    children:
+                                        _templates[index % _templates.length]
                                             .map(_buildItemWidget)
-                                            .toList()), // Template1
-                                    Stack(
-                                        children: mockData
-                                            .map(_buildItemWidget)
-                                            .toList()), // Template2
-                                    //Template 3..8
-                                  ],
-                                )
-                              ])),
+                                            .toList(),
+                                  );
+                                },
+                              ),
+                            )
+                          ])),
                     )),
               )),
           _hideMenu ? Container() : _getTopMenu(),
@@ -308,40 +306,3 @@ class _PhotoEditorState extends State<PhotoEditor> {
     );
   }
 }
-
-class OverlaidWidget {
-  Offset position = Offset(0.1, 0.1);
-  double scale = 1.0;
-  double rotation = 0.0;
-  Widget? widget;
-}
-
-final mockData = [
-  OverlaidWidget()
-    ..widget = const AqiWidget(
-      aqi: 80,
-      defaultVariation: 1,
-    )
-    ..position = Offset(0.1, 0.2),
-  OverlaidWidget()
-    ..widget = const AqiWidgetEmoji(
-      aqi: 80,
-      defaultVariation: 1,
-    )
-    ..position = Offset(0.1, 0.2),
-  OverlaidWidget()
-    ..widget = const RecommendationText2(
-      aqi: 40,
-      defaultVariation: 0,
-      iconOrNoIcon: true,
-    )
-    ..position = Offset(0.1, 0.5),
-  // OverlaidWidget()
-  //   ..type = ItemType.Text
-  //   ..value = "ลมไม่แรง 1.0 กม./ชม."
-  //   ..position = Offset(0.1, 0.3),
-  // OverlaidWidget()
-  //   ..type = ItemType.Text
-  //   ..value = "5 จุดความร้อนใกล้ฉัน"
-  //   ..position = Offset(0.1, 0.4)
-];
