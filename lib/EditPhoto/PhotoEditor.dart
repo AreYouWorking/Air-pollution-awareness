@@ -27,7 +27,8 @@ class _PhotoEditorState extends State<PhotoEditor> {
   Future<Color>? _dominantColorFuture;
   Size? _editingAreaSize;
   double? _aspectRatio;
-  bool? _isTemplateChangeAllowed;
+  bool _isTemplateChangeAllowed = true;
+  bool _hideMenu = false;
 
   final GlobalKey _globalKey = GlobalKey();
 
@@ -93,8 +94,29 @@ class _PhotoEditorState extends State<PhotoEditor> {
   @override
   void initState() {
     _dominantColorFuture = _getImagePalette(FileImage(widget.image));
+    _pageController.addListener(_templateScrollListener);
     _setEditingAreaSize();
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  _templateScrollListener() {
+    setState(() {
+      if (_pageController.offset >= _pageController.position.maxScrollExtent ||
+          _pageController.offset <= _pageController.position.minScrollExtent) {
+        // Is done scrolling?
+        _hideMenu = false;
+      } else if (_pageController.position.userScrollDirection !=
+          ScrollDirection.idle) {
+        // Is scrolling?
+        _hideMenu = true;
+      }
+    });
   }
 
   // https://www.youtube.com/watch?v=PTyvarfJiW8
@@ -114,6 +136,9 @@ class _PhotoEditorState extends State<PhotoEditor> {
                 _currentPos = _activeItem!.position;
                 _currentScale = _activeItem!.scale;
                 _currentRotation = _activeItem!.rotation;
+                setState(() {
+                  _hideMenu = true;
+                });
               },
               onScaleUpdate: (details) {
                 if (_activeItem == null) return;
@@ -125,6 +150,7 @@ class _PhotoEditorState extends State<PhotoEditor> {
                   _activeItem!.position = Offset(left, top);
                   _activeItem!.rotation = details.rotation + _currentRotation;
                   _activeItem!.scale = details.scale * _currentScale;
+                  _hideMenu = true;
                 });
               },
               child: Align(
@@ -183,7 +209,7 @@ class _PhotoEditorState extends State<PhotoEditor> {
                               ])),
                     )),
               )),
-          _getTopMenu(),
+          _hideMenu ? Container() : _getTopMenu(),
         ]));
   }
 
@@ -269,8 +295,10 @@ class _PhotoEditorState extends State<PhotoEditor> {
             },
             onPointerUp: (details) {
               _inAction = false;
+              _activeItem = null;
               setState(() {
                 _isTemplateChangeAllowed = true;
+                _hideMenu = false;
               });
             },
             child: e.widget,
