@@ -127,6 +127,17 @@ class _SelectlocationState extends State<Selectlocation> {
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(20, 5, 0, 5),
                     child: TextField(
+                      onChanged: (text) async {
+                        print('searchLocation text: $text');
+                        if (textController.text.length > 1) {
+                          Suggestdata =
+                              await searchLocation(textController.text);
+                        }
+
+                        setState(() {
+                          suggestLocWidget = displayLocationList(Suggestdata);
+                        });
+                      },
                       controller: textController,
                       decoration: const InputDecoration(
                         border: OutlineInputBorder(),
