@@ -4,6 +4,7 @@ import 'package:app/forecast/daily.dart';
 import 'package:app/forecast/hourly.dart';
 import 'package:app/forecast/today.dart';
 import 'package:app/style.dart' as style;
+import 'package:flutter/cupertino.dart';
 
 DailyData _fromAqi(int aqi, DateTime datetime) {
   if (aqi <= 50) {
@@ -23,17 +24,17 @@ DailyData _fromAqi(int aqi, DateTime datetime) {
 }
 
 class ForecastData {
-  Airquality? openmetro;
+  Airquality? openmeteo;
   Data? aqicn;
   DateTime? created;
 
-  ForecastData({this.openmetro, this.aqicn, this.created});
+  ForecastData({this.openmeteo, this.aqicn, this.created});
 
   static Future<ForecastData> init(String lat, String long) async {
     final openmetro = await getAirQuality5day(lat, long);
     final aqicn = await getData(lat, long);
     return ForecastData(
-        created: DateTime.parse(aqicn.time.iso).toLocal(), openmetro: openmetro, aqicn: aqicn);
+        created: DateTime.parse(aqicn.time.iso).toLocal(), openmeteo: openmetro, aqicn: aqicn);
   }
 
   List<DailyData>? getDailyDatas() {
@@ -64,16 +65,18 @@ class ForecastData {
   }
 
   List<List<HourlyChartData>>? getHourlyData() {
-    if (openmetro == null) {
+    if (openmeteo == null || aqicn == null) {
       return null;
     }
 
     List<HourlyChartData> res = [];
+
+    double factor = aqicn!.aqi / openmeteo!.hourly.us_aqi_pm2_5[0]!;
     for (var i = 0; i <= 72; i++) {
-      if (openmetro!.hourly.us_aqi_pm2_5[i] == null) {
+      if (openmeteo!.hourly.us_aqi_pm2_5[i] == null) {
         break;
       }
-      var aqi = openmetro!.hourly.us_aqi_pm2_5[i]!;
+      int aqi = (openmeteo!.hourly.us_aqi_pm2_5[i]! * factor).ceil();
       var color = style.aqiColor[0];
       if (aqi <= 50) {
         color = style.aqiColor[0];
@@ -89,7 +92,7 @@ class ForecastData {
         color = style.aqiColor[5];
       }
       res.add(HourlyChartData(
-          DateTime.parse(openmetro!.hourly.time[i]), aqi, color));
+          DateTime.parse(openmeteo!.hourly.time[i]), aqi, color));
     }
     return [res.sublist(0, 24), res.sublist(24, 48), res.sublist(48, 72)];
   }
