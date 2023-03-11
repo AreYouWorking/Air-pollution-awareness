@@ -1,3 +1,4 @@
+import 'package:app/EditPhoto/templates.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -11,7 +12,7 @@ class TextWidget extends StatefulWidget {
 
   final String text;
   final double fontSize;
-  final int defaultVariation;
+  final WidgetVariation defaultVariation;
 
   @override
   State<TextWidget> createState() => _TextWidgetState();
@@ -28,7 +29,7 @@ class _TextWidgetState extends State<TextWidget> {
     super.initState();
     setState(() {
       _variations = [whiteNoBg(), blackNoBg(), whiteBg(), blackBg()];
-      _tapCount = widget.defaultVariation;
+      _tapCount = widget.defaultVariation.index;
     });
   }
 

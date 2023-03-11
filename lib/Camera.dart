@@ -37,7 +37,7 @@ class _CameraState extends State<Camera> with WidgetsBindingObserver {
   double _currentZoomLevel = 1.0;
   double _initZoomLevel = 1.0;
 
-  SupportedAspectRatio _currentAspectRatio = SupportedAspectRatio.nineBySixteen;
+  SupportedAspectRatio _currentAspectRatio = SupportedAspectRatio.threeByFour;
 
   FlashMode? _currentFlashMode;
   bool _isRearCameraSelected = true;

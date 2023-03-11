@@ -1,4 +1,4 @@
-import 'package:flutter/cupertino.dart';
+import 'package:app/EditPhoto/templates.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -14,7 +14,19 @@ class TextWidgetIcon extends StatefulWidget {
   final String text;
   final double fontSize;
   final String iconFilePath;
-  final int defaultVariation;
+  final WidgetVariation defaultVariation;
+
+  Size textSize() {
+    final TextPainter textPainter = TextPainter(
+        text: TextSpan(
+            text: text,
+            style: GoogleFonts.oswald(
+                fontWeight: FontWeight.w700, fontSize: fontSize, height: 1)),
+        maxLines: 1,
+        textDirection: TextDirection.ltr)
+      ..layout(minWidth: 0, maxWidth: double.infinity);
+    return textPainter.size;
+  }
 
   @override
   State<TextWidgetIcon> createState() => _TextWidgetIconState();
@@ -31,7 +43,7 @@ class _TextWidgetIconState extends State<TextWidgetIcon> {
     super.initState();
     setState(() {
       _variations = [whiteNoBg(), blackNoBg(), whiteBg(), blackBg()];
-      _tapCount = widget.defaultVariation;
+      _tapCount = widget.defaultVariation.index;
     });
   }
 

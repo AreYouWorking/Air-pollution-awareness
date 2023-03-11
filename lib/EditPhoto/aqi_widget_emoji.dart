@@ -1,3 +1,4 @@
+import 'package:app/EditPhoto/templates.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -7,7 +8,7 @@ class AqiWidgetEmoji extends StatefulWidget {
       {super.key, required this.aqi, required this.defaultVariation});
 
   final int aqi;
-  final int defaultVariation;
+  final WidgetVariation defaultVariation;
 
   @override
   State<AqiWidgetEmoji> createState() => _AqiWidgetEmojiState();
@@ -25,7 +26,7 @@ class _AqiWidgetEmojiState extends State<AqiWidgetEmoji> {
     super.initState();
     setState(() {
       _variations = [whiteNoBg(), blackNoBg(), whiteBg(), blackBg()];
-      _tapCount = widget.defaultVariation;
+      _tapCount = widget.defaultVariation.index;
     });
   }
 

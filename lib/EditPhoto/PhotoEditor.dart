@@ -27,7 +27,7 @@ class PhotoEditor extends StatefulWidget {
 }
 
 class _PhotoEditorState extends State<PhotoEditor> {
-  List<List<OverlaidWidget>> _templates = [template1, template2];
+  List<List<OverlaidWidget>>? _templates;
 
   Future<Color>? _dominantColorFuture;
   Size? _editingAreaSize;
@@ -55,7 +55,7 @@ class _PhotoEditorState extends State<PhotoEditor> {
     return paletteGenerator.dominantColor!.color;
   }
 
-  void _setEditingAreaSize() async {
+  void _initTemplateSize() async {
     var decodedImage =
         await decodeImageFromList(widget.image.readAsBytesSync());
     if (!mounted) return;
@@ -65,6 +65,7 @@ class _PhotoEditorState extends State<PhotoEditor> {
     setState(() {
       _aspectRatio = aspectRatio;
       _editingAreaSize = Size(editingAreaWidth, editingAreaHeight);
+      _templates = buildTemplates(150, "Suthep, Chiang Mai", _editingAreaSize!);
     });
   }
 
@@ -96,7 +97,7 @@ class _PhotoEditorState extends State<PhotoEditor> {
   @override
   void initState() {
     _dominantColorFuture = _getImagePalette(FileImage(widget.image));
-    _setEditingAreaSize();
+    _initTemplateSize();
     super.initState();
   }
 
@@ -111,6 +112,8 @@ class _PhotoEditorState extends State<PhotoEditor> {
   Widget build(BuildContext context) {
     final screen = MediaQuery.of(context).size;
     final photoAspectRatio = _aspectRatio;
+    final templates = _templates;
+
     return Scaffold(
         backgroundColor: Colors.black,
         body: Stack(children: <Widget>[
@@ -196,8 +199,9 @@ class _PhotoEditorState extends State<PhotoEditor> {
                                     : const NeverScrollableScrollPhysics(),
                                 itemBuilder: (BuildContext context, int index) {
                                   return Stack(
-                                    children:
-                                        _templates[index % _templates.length]
+                                    children: templates == null
+                                        ? []
+                                        : templates[index % templates.length]
                                             .map(_buildItemWidget)
                                             .toList(),
                                   );
@@ -267,11 +271,14 @@ class _PhotoEditorState extends State<PhotoEditor> {
   }
 
   Widget _buildItemWidget(OverlaidWidget e) {
-    final screen = MediaQuery.of(context).size;
+    ui.Size? sz = _editingAreaSize;
+    if (sz == null) {
+      return Container();
+    }
 
     return Positioned(
-      top: e.position.dy * screen.height,
-      left: e.position.dx * screen.width,
+      top: e.position.dy * sz.height,
+      left: e.position.dx * sz.width,
       child: Transform.scale(
         scale: e.scale,
         child: Transform.rotate(
