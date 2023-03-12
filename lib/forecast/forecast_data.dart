@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:app/api/aqicn/geofeed.dart';
 import 'package:app/api/openmetro/airquality.dart';
 import 'package:app/forecast/daily.dart';
@@ -5,6 +7,8 @@ import 'package:app/forecast/hourly.dart';
 import 'package:app/forecast/today.dart';
 import 'package:app/style.dart' as style;
 import 'package:flutter/cupertino.dart';
+
+import 'hotspot.dart';
 
 DailyData _fromAqi(int aqi, DateTime datetime) {
   if (aqi <= 50) {
@@ -27,14 +31,19 @@ class ForecastData {
   Airquality? openmeteo;
   Data? aqicn;
   DateTime? created;
+  int? hotspot = 0;
 
-  ForecastData({this.openmeteo, this.aqicn, this.created});
+  ForecastData({this.openmeteo, this.aqicn, this.created, this.hotspot});
 
   static Future<ForecastData> init(String lat, String long) async {
     final openmetro = await getAirQuality5day(lat, long);
     final aqicn = await getData(lat, long);
+    final hotspot = await searchHotspot();
     return ForecastData(
-        created: DateTime.parse(aqicn.time.iso).toLocal(), openmeteo: openmetro, aqicn: aqicn);
+        created: DateTime.parse(aqicn.time.iso).toLocal(),
+        openmeteo: openmetro,
+        aqicn: aqicn,
+        hotspot: hotspot);
   }
 
   List<DailyData>? getDailyDatas() {
@@ -60,7 +69,7 @@ class ForecastData {
     }
 
     var today = _fromAqi(aqicn!.aqi, DateTime.now());
-    return TodayData(today.emoji, today.text, today.aqi, today.color, 5,
+    return TodayData(today.emoji, today.text, today.aqi, today.color, hotspot!,
         aqicn!.iaqi.t.v, aqicn!.iaqi.w.v);
   }
 
