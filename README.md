@@ -1,5 +1,7 @@
 <p align="center">
-  <img src="android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png" width="160px"style="border-radius: 15%"/>
+  
+  <img src="android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png" width="160px" style="border-radius: 15%"/>
+
   <br>
   <b>A(ir)Wareness by AreYouWorking</b>
   <br>
