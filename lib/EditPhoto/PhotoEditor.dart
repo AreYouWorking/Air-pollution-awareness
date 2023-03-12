@@ -10,6 +10,7 @@ import 'package:gallery_saver/gallery_saver.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:palette_generator/palette_generator.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:vibration/vibration.dart';
 
 class OverlaidWidget {
   Offset position = Offset(0.1, 0.1);
@@ -36,6 +37,8 @@ class _PhotoEditorState extends State<PhotoEditor> {
 
   bool _isTemplateChangeAllowed = true;
   bool _hideMenu = false;
+  bool _hideDelete = true;
+  bool _nearDelete = false;
 
   final GlobalKey _globalKey = GlobalKey();
 
@@ -149,6 +152,7 @@ class _PhotoEditorState extends State<PhotoEditor> {
                 _currentRotation = _activeItem!.rotation;
                 setState(() {
                   _hideMenu = true;
+                  _hideDelete = false;
                 });
               },
               onScaleUpdate: (details) {
@@ -162,6 +166,13 @@ class _PhotoEditorState extends State<PhotoEditor> {
                   _activeItem!.rotation = details.rotation + _currentRotation;
                   _activeItem!.scale = details.scale * _currentScale;
                   _hideMenu = true;
+                  
+                  if (details.focalPoint.dy > 700) {
+                    _nearDelete = true;
+                  }else{
+                    _nearDelete = false;
+                  }
+              
                 });
               },
               child: Align(
@@ -233,8 +244,23 @@ class _PhotoEditorState extends State<PhotoEditor> {
                     )),
               )),
           _hideMenu ? Container() : _getTopMenu(),
+          _hideDelete ? Container() : _getDeleteButton(),
         ]));
   }
+
+  Widget _getDeleteButton() {
+    return Align(
+        alignment: AlignmentDirectional.bottomCenter,
+        child: Container(
+            padding: const EdgeInsets.fromLTRB(8.0, 24.0, 8.0, 24.0),
+            child: 
+                  // Go back
+                  _circularButton(() {
+                    // TODO: show confirm dialog before going back
+                    if (!mounted) return;print("inside");
+                    Navigator.pop(context);
+                  }, const Color(0x64000000),
+                      Icon(Icons.delete, size: 28, color: _nearDelete? Colors.red: Colors.white,))));}
 
   Widget _getTopMenu() {
     return Align(
@@ -318,11 +344,19 @@ class _PhotoEditorState extends State<PhotoEditor> {
             },
             onPointerUp: (details) {
               _inAction = false;
-              _activeItem = null;
               setState(() {
                 _isTemplateChangeAllowed = true;
                 _hideMenu = false;
+                _hideDelete = true;
               });
+              print(details);
+              print(details.position.dx);
+              print(details.position.dy);
+              if(details.position.dy > 700){
+                _activeItem?.position = Offset(200, 800);
+                Vibration.vibrate(duration: 100);
+              }
+              _activeItem = null;
             },
             child: e.widget,
           ),

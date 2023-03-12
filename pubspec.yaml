@@ -60,6 +60,7 @@ dependencies:
   flutter_svg: ^2.0.2
   fluttertoast: ^8.2.1
   sliding_up_panel: ^2.0.0+1
+  vibration: ^1.7.6
 
 dev_dependencies:
   integration_test:
