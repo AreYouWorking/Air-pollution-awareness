@@ -69,7 +69,7 @@ class _PhotoEditorState extends State<PhotoEditor> {
     });
   }
 
-  Future<void> _savePicture() async {
+  Future<File> _savePicture() async {
     setState(() {
       _isSaving = true;
     });
@@ -92,6 +92,8 @@ class _PhotoEditorState extends State<PhotoEditor> {
     setState(() {
       _isSaving = false;
     });
+
+    return imgFile;
   }
 
   @override
@@ -239,9 +241,10 @@ class _PhotoEditorState extends State<PhotoEditor> {
                         _circularButton(() {}, const Color(0x64000000),
                             const Icon(Icons.sticky_note_2_outlined, size: 32)),
                         // Share
-                        _circularButton(() {
+                        _circularButton(() async {
                           // TODO: Share the edited photo, not the photo file
-                          Share.shareXFiles([XFile(widget.image.path)]);
+                          var file = await _savePicture();
+                          Share.shareXFiles([XFile(file.path)]);
                         }, const Color(0x64000000),
                             const Icon(Icons.ios_share, size: 32)),
                         // Save
