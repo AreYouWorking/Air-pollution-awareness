@@ -127,9 +127,13 @@ class _PhotoEditorState extends State<PhotoEditor> {
   // https://www.youtube.com/watch?v=PTyvarfJiW8
   @override
   Widget build(BuildContext context) {
-    final screen = MediaQuery.of(context).size;
+    final size = _editingAreaSize;
     final photoAspectRatio = _aspectRatio;
     final templates = _templates;
+
+    if (size == null) {
+      return Container();
+    }
 
     return Scaffold(
         backgroundColor: Colors.black,
@@ -150,8 +154,8 @@ class _PhotoEditorState extends State<PhotoEditor> {
               onScaleUpdate: (details) {
                 if (_activeItem == null) return;
                 final delta = details.focalPoint - _initPos;
-                final left = (delta.dx / screen.width) + _currentPos.dx;
-                final top = (delta.dy / screen.height) + _currentPos.dy;
+                final left = (delta.dx / size.width) + _currentPos.dx;
+                final top = (delta.dy / size.height) + _currentPos.dy;
 
                 setState(() {
                   _activeItem!.position = Offset(left, top);
@@ -171,8 +175,8 @@ class _PhotoEditorState extends State<PhotoEditor> {
                   return AlignmentDirectional.center;
                 }()),
                 child: SizedBox(
-                    width: screen.width,
-                    height: _editingAreaSize?.height,
+                    width: size.width,
+                    height: size.height,
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(16.0),
                       child: RepaintBoundary(
