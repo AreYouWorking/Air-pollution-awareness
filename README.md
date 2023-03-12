@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/0736b/0736b/main/Previews/AIRWARENESS_LOGO.png" width="160px"/>
+  <img src="android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png" width="160px"style="border-radius: 15%"/>
   <br>
   <b>A(ir)Wareness by AreYouWorking</b>
   <br>
