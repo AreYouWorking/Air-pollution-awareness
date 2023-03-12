@@ -124,14 +124,17 @@ class _CameraState extends State<Camera> with WidgetsBindingObserver {
 
   @override
   void initState() {
+    initCamera();
+    super.initState();
+  }
+
+  void initCamera() {
     // Hide the status bar
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
         overlays: [SystemUiOverlay.bottom]);
-
     // Index 0 of cameras list — back camera
     // Index 1 of cameras list — front camera
     onNewCameraSelected(cameras[0]);
-    super.initState();
     WidgetsBinding.instance.addObserver(this);
   }
 
@@ -140,6 +143,10 @@ class _CameraState extends State<Camera> with WidgetsBindingObserver {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
         overlays: SystemUiOverlay.values);
     WidgetsBinding.instance.removeObserver(this);
+    if (controller != null && controller!.value.isInitialized) {
+      controller?.stopImageStream();
+      controller?.dispose();
+    }
     super.dispose();
   }
 
@@ -151,6 +158,7 @@ class _CameraState extends State<Camera> with WidgetsBindingObserver {
     }
 
     try {
+      showLoaderDialog(context);
       XFile rawImage = await cameraController.takePicture();
       File imageFile = File(rawImage.path);
 
@@ -165,13 +173,15 @@ class _CameraState extends State<Camera> with WidgetsBindingObserver {
         '${directory.path}/$currentUnix.$fileFormat',
       ).writeAsBytes(jpg);
 
+      controller?.dispose();
       if (!mounted) return;
       Navigator.pop(context); // to dismiss loader dialog
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (context) => PhotoEditor(image: croppedFile)),
-      );
+      Navigator.of(context)
+          .push(MaterialPageRoute(
+              builder: (context) => PhotoEditor(image: croppedFile)))
+          .then((_) {
+        if (mounted) initCamera();
+      });
     } catch (e) {
       print('Error occurred while taking picture: $e');
     }
@@ -317,10 +327,10 @@ class _CameraState extends State<Camera> with WidgetsBindingObserver {
                         child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: <Widget>[
-                          getImagePickerButton(),
-                          getCaptureButton(),
-                          getFlipCameraButton()
-                        ])))),
+                              getImagePickerButton(),
+                              getCaptureButton(),
+                              getFlipCameraButton()
+                            ])))),
             GestureDetector(
                 onScaleStart: (ScaleStartDetails scaleStartDetails) {
               _initZoomLevel = _currentZoomLevel;
@@ -425,7 +435,6 @@ class _CameraState extends State<Camera> with WidgetsBindingObserver {
     bool isPressed = false;
     return InkWell(
       onTap: (() {
-        showLoaderDialog(context);
         if (!isPressed) {
           isPressed = true;
           takePicture();
