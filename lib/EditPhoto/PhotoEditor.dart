@@ -96,6 +96,12 @@ class _PhotoEditorState extends State<PhotoEditor> {
     return imgFile;
   }
 
+  void _sharePicture() async {
+    File imgFile = await _savePicture();
+    await Share.shareXFiles([XFile(imgFile.path)]);
+    await imgFile.delete();
+  }
+
   @override
   void initState() {
     _dominantColorFuture = _getImagePalette(FileImage(widget.image));
@@ -241,11 +247,7 @@ class _PhotoEditorState extends State<PhotoEditor> {
                         _circularButton(() {}, const Color(0x64000000),
                             const Icon(Icons.sticky_note_2_outlined, size: 32)),
                         // Share
-                        _circularButton(() async {
-                          // TODO: Share the edited photo, not the photo file
-                          var file = await _savePicture();
-                          Share.shareXFiles([XFile(file.path)]);
-                        }, const Color(0x64000000),
+                        _circularButton(_sharePicture, const Color(0x64000000),
                             const Icon(Icons.ios_share, size: 32)),
                         // Save
                         _circularButton(
