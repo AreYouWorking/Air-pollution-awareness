@@ -9,6 +9,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:gallery_saver/gallery_saver.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:palette_generator/palette_generator.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class OverlaidWidget {
   Offset position = Offset(0.1, 0.1);
@@ -70,6 +71,14 @@ class _PhotoEditorState extends State<PhotoEditor> {
   }
 
   Future<File> _savePicture() async {
+    Fluttertoast.showToast(
+        msg: "Saved to Gallery",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.black,
+        textColor: Colors.white,
+        fontSize: 16.0);
     setState(() {
       _isSaving = true;
     });

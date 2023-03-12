@@ -58,6 +58,7 @@ dependencies:
   palette_generator: ^0.3.3+2
   google_fonts: ^4.0.3
   flutter_svg: ^2.0.2
+  fluttertoast: ^8.2.1
 
 dev_dependencies:
   integration_test:
