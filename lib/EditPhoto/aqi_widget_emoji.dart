@@ -5,9 +5,13 @@ import 'package:google_fonts/google_fonts.dart';
 
 class AqiWidgetEmoji extends StatefulWidget {
   const AqiWidgetEmoji(
-      {super.key, required this.aqi, required this.defaultVariation});
+      {super.key,
+      required this.aqi,
+      required this.fontSize,
+      required this.defaultVariation});
 
   final int aqi;
+  final double fontSize;
   final WidgetVariation defaultVariation;
 
   @override
@@ -17,7 +21,6 @@ class AqiWidgetEmoji extends StatefulWidget {
 class _AqiWidgetEmojiState extends State<AqiWidgetEmoji> {
   int _tapCount = 0;
   final EdgeInsets _padding = const EdgeInsets.fromLTRB(12, 16, 12, 12);
-  final double _fontSize = 64.0;
 
   List<Widget> _variations = [];
 
@@ -50,7 +53,7 @@ class _AqiWidgetEmojiState extends State<AqiWidgetEmoji> {
             text: "AQI ${widget.aqi}",
             style: GoogleFonts.oswald(
               fontWeight: FontWeight.w700,
-              fontSize: _fontSize,
+              fontSize: widget.fontSize,
               color: Colors.white,
               height: 1,
             )),
@@ -59,8 +62,8 @@ class _AqiWidgetEmojiState extends State<AqiWidgetEmoji> {
           padding: const EdgeInsets.only(left: 16.0),
           child: SvgPicture.asset(
             _getEmoji(widget.aqi),
-            width: 64.0,
-            height: 64.0,
+            width: widget.fontSize,
+            height: widget.fontSize,
           ),
         )),
       ],
@@ -75,7 +78,7 @@ class _AqiWidgetEmojiState extends State<AqiWidgetEmoji> {
             text: "AQI ${widget.aqi}",
             style: GoogleFonts.oswald(
               fontWeight: FontWeight.w700,
-              fontSize: _fontSize,
+              fontSize: widget.fontSize,
               color: Colors.black,
               height: 1,
             )),
@@ -84,8 +87,8 @@ class _AqiWidgetEmojiState extends State<AqiWidgetEmoji> {
           padding: const EdgeInsets.only(left: 16.0),
           child: SvgPicture.asset(
             _getEmoji(widget.aqi),
-            width: 64.0,
-            height: 64.0,
+            width: widget.fontSize,
+            height: widget.fontSize,
           ),
         )),
       ],

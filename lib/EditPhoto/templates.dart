@@ -61,11 +61,13 @@ List<List<OverlaidWidget>> buildTemplates(
     int aqi, String location, Size editingAreaSize) {
   AqiWidgetEmoji aqiWhiteNoBgEmoji = AqiWidgetEmoji(
     aqi: aqi,
+    fontSize: 64,
     defaultVariation: WidgetVariation.whiteNoBg,
   );
 
   AqiWidgetEmoji aqiBlackNoBgEmoji = AqiWidgetEmoji(
     aqi: aqi,
+    fontSize: 64,
     defaultVariation: WidgetVariation.blackNoBg,
   );
 

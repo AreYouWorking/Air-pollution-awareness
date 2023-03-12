@@ -2,7 +2,12 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
+import 'package:app/EditPhoto/aqi_widget.dart';
+import 'package:app/EditPhoto/aqi_widget_emoji.dart';
+import 'package:app/EditPhoto/recommendation_text1.dart';
+import 'package:app/EditPhoto/recommendation_text2.dart';
 import 'package:app/EditPhoto/templates.dart';
+import 'package:app/EditPhoto/text_widget_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:path_provider/path_provider.dart';
@@ -43,6 +48,13 @@ class _PhotoEditorState extends State<PhotoEditor> {
   final GlobalKey _globalKey = GlobalKey();
 
   final PageController _pageController = PageController(initialPage: 999);
+
+  final DraggableScrollableController slideUpPanelController =
+      DraggableScrollableController();
+  final minSlideUpPanelSize = 0.0;
+  final midSlideUpPanelSize = 0.6;
+  final maxSlideUpPanelSize = 1.0;
+  static const int slideUpAnimationDurationInMs = 300;
 
   OverlaidWidget? _activeItem;
   late Offset _initPos;
@@ -130,11 +142,11 @@ class _PhotoEditorState extends State<PhotoEditor> {
   // https://www.youtube.com/watch?v=PTyvarfJiW8
   @override
   Widget build(BuildContext context) {
-    final size = _editingAreaSize;
+    final editingArea = _editingAreaSize;
     final photoAspectRatio = _aspectRatio;
     final templates = _templates;
 
-    if (size == null) {
+    if (editingArea == null) {
       return Container();
     }
 
@@ -143,10 +155,11 @@ class _PhotoEditorState extends State<PhotoEditor> {
         body: Stack(children: <Widget>[
           // Photo Editing area
           GestureDetector(
+              behavior: HitTestBehavior.translucent,
               onScaleStart: (details) {
+                _initPos = details.focalPoint;
                 if (_activeItem == null) return;
 
-                _initPos = details.focalPoint;
                 _currentPos = _activeItem!.position;
                 _currentScale = _activeItem!.scale;
                 _currentRotation = _activeItem!.rotation;
@@ -156,23 +169,28 @@ class _PhotoEditorState extends State<PhotoEditor> {
                 });
               },
               onScaleUpdate: (details) {
-                if (_activeItem == null) return;
                 final delta = details.focalPoint - _initPos;
-                final left = (delta.dx / size.width) + _currentPos.dx;
-                final top = (delta.dy / size.height) + _currentPos.dy;
+                if (_activeItem == null) {
+                  if (delta.dy < -5) {
+                    _animateShowPanel();
+                  }
+                  return;
+                }
+                final left = (delta.dx / editingArea.width) + _currentPos.dx;
+                final top = (delta.dy / editingArea.height) + _currentPos.dy;
 
                 setState(() {
                   _activeItem!.position = Offset(left, top);
                   _activeItem!.rotation = details.rotation + _currentRotation;
                   _activeItem!.scale = details.scale * _currentScale;
                   _hideMenu = true;
-                  
+
                   if (details.focalPoint.dy > 700) {
                     _nearDelete = true;
                   }else{
                     _nearDelete = false;
                   }
-              
+
                 });
               },
               child: Align(
@@ -186,8 +204,8 @@ class _PhotoEditorState extends State<PhotoEditor> {
                   return AlignmentDirectional.center;
                 }()),
                 child: SizedBox(
-                    width: size.width,
-                    height: size.height,
+                    width: editingArea.width,
+                    height: editingArea.height,
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(16.0),
                       child: RepaintBoundary(
@@ -245,7 +263,98 @@ class _PhotoEditorState extends State<PhotoEditor> {
               )),
           _hideMenu ? Container() : _getTopMenu(),
           _hideDelete ? Container() : _getDeleteButton(),
+          DraggableScrollableSheet(
+              initialChildSize: minSlideUpPanelSize,
+              minChildSize: minSlideUpPanelSize,
+              snap: true,
+              snapSizes: [midSlideUpPanelSize],
+              snapAnimationDuration:
+                  const Duration(milliseconds: slideUpAnimationDurationInMs),
+              controller: slideUpPanelController,
+              builder: (context, scrollController) {
+                return Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16.0),
+                      color: const Color.fromRGBO(0, 0, 0, 0.8),
+                    ),
+                    child: Column(
+                      children: [
+                        const Icon(
+                          Icons.horizontal_rule_rounded,
+                          size: 36,
+                        ),
+                        Expanded(
+                          child: ListView(
+                            itemExtent: 120.0,
+                            controller: scrollController,
+                            children: <Widget>[
+                              AqiWidget(
+                                  aqi: 80,
+                                  fontSize: 64,
+                                  defaultVariation: WidgetVariation.whiteNoBg),
+                              AqiWidgetEmoji(
+                                  aqi: 80,
+                                  fontSize: 64,
+                                  defaultVariation: WidgetVariation.whiteNoBg),
+                              TextWidgetIcon(
+                                  text: "suthep, chiang mai",
+                                  fontSize: 36,
+                                  iconFilePath:
+                                      'assets/icons/near_me_FILL1_wght400_GRAD0_opsz48.svg',
+                                  defaultVariation: WidgetVariation.whiteNoBg),
+                              RecommendationText1(
+                                aqi: 80,
+                                fontSize: 36,
+                                defaultVariation: WidgetVariation.whiteNoBg,
+                                iconOrNoIcon: false,
+                              ),
+                              RecommendationText2(
+                                aqi: 80,
+                                fontSize: 36,
+                                defaultVariation: WidgetVariation.whiteNoBg,
+                                iconOrNoIcon: false,
+                              ),
+                              RecommendationText1(
+                                aqi: 80,
+                                fontSize: 36,
+                                defaultVariation: WidgetVariation.whiteNoBg,
+                                iconOrNoIcon: true,
+                              ),
+                              RecommendationText2(
+                                aqi: 80,
+                                fontSize: 36,
+                                defaultVariation: WidgetVariation.whiteNoBg,
+                                iconOrNoIcon: true,
+                              )
+                            ].map(_buildWidgetPreviewTile).toList(),
+                          ),
+                        ),
+                      ],
+                    ));
+              })
         ]));
+  }
+
+  void _animateShowPanel() {
+    slideUpPanelController.animateTo(midSlideUpPanelSize,
+        duration: const Duration(milliseconds: slideUpAnimationDurationInMs),
+        curve: Curves.easeIn);
+  }
+
+  void _animateHidePanel() {
+    slideUpPanelController.animateTo(minSlideUpPanelSize,
+        duration: const Duration(milliseconds: slideUpAnimationDurationInMs),
+        curve: Curves.easeOut);
+  }
+
+  void _addOverlaidWidget(Widget widgetToAdd) {
+    int currPage = _pageController.page!.toInt() % _templates!.length;
+    OverlaidWidget overlaidWidget = OverlaidWidget()
+      ..widget = widgetToAdd
+      ..position = const Offset(0.2, 0.2);
+    setState(() {
+      _templates![currPage].add(overlaidWidget);
+    });
   }
 
   Widget _getDeleteButton() {
@@ -253,7 +362,7 @@ class _PhotoEditorState extends State<PhotoEditor> {
         alignment: AlignmentDirectional.bottomCenter,
         child: Container(
             padding: const EdgeInsets.fromLTRB(8.0, 24.0, 8.0, 24.0),
-            child: 
+            child:
                   // Go back
                   _circularButton(() {
                     // TODO: show confirm dialog before going back
@@ -283,7 +392,10 @@ class _PhotoEditorState extends State<PhotoEditor> {
                       children: <Widget>[
                         _circularButton(() {}, const Color(0x64000000),
                             const Text("T", style: TextStyle(fontSize: 28))),
-                        _circularButton(() {}, const Color(0x64000000),
+                        // Add widget
+                        _circularButton(
+                            _animateShowPanel,
+                            const Color(0x64000000),
                             const Icon(Icons.sticky_note_2_outlined, size: 32)),
                         // Share
                         _circularButton(_sharePicture, const Color(0x64000000),
@@ -312,6 +424,17 @@ class _PhotoEditorState extends State<PhotoEditor> {
           foregroundColor: Colors.white, // <-- Splash color
         ),
         child: icon);
+  }
+
+  Widget _buildWidgetPreviewTile(Widget previewWidget) {
+    return Center(
+      child: InkResponse(
+          onTap: () {
+            _animateHidePanel();
+            _addOverlaidWidget(previewWidget);
+          },
+          child: IgnorePointer(child: previewWidget)),
+    );
   }
 
   Widget _buildItemWidget(OverlaidWidget e) {
