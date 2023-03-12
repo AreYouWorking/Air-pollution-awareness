@@ -76,17 +76,33 @@ Map<String, dynamic> _$CityToJson(City instance) => <String, dynamic>{
     };
 
 Iaqi _$IaqiFromJson(Map<String, dynamic> json) => Iaqi(
-      IaqiValue.fromJson(json['co'] as Map<String, dynamic>),
+      json['co'] == null
+          ? null
+          : IaqiValue.fromJson(json['co'] as Map<String, dynamic>),
       json['dew'] == null
           ? null
           : IaqiValue.fromJson(json['dew'] as Map<String, dynamic>),
-      IaqiValue.fromJson(json['h'] as Map<String, dynamic>),
-      IaqiValue.fromJson(json['no2'] as Map<String, dynamic>),
-      IaqiValue.fromJson(json['o3'] as Map<String, dynamic>),
-      IaqiValue.fromJson(json['p'] as Map<String, dynamic>),
-      IaqiValue.fromJson(json['pm10'] as Map<String, dynamic>),
-      IaqiValue.fromJson(json['pm25'] as Map<String, dynamic>),
-      IaqiValue.fromJson(json['so2'] as Map<String, dynamic>),
+      json['h'] == null
+          ? null
+          : IaqiValue.fromJson(json['h'] as Map<String, dynamic>),
+      json['no2'] == null
+          ? null
+          : IaqiValue.fromJson(json['no2'] as Map<String, dynamic>),
+      json['o3'] == null
+          ? null
+          : IaqiValue.fromJson(json['o3'] as Map<String, dynamic>),
+      json['p'] == null
+          ? null
+          : IaqiValue.fromJson(json['p'] as Map<String, dynamic>),
+      json['pm10'] == null
+          ? null
+          : IaqiValue.fromJson(json['pm10'] as Map<String, dynamic>),
+      json['pm25'] == null
+          ? null
+          : IaqiValue.fromJson(json['pm25'] as Map<String, dynamic>),
+      json['so2'] == null
+          ? null
+          : IaqiValue.fromJson(json['so2'] as Map<String, dynamic>),
       IaqiValue.fromJson(json['t'] as Map<String, dynamic>),
       IaqiValue.fromJson(json['w'] as Map<String, dynamic>),
       json['wg'] == null

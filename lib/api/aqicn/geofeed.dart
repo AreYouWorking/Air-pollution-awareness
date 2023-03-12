@@ -92,15 +92,15 @@ class City {
 
 @JsonSerializable()
 class Iaqi {
-  final IaqiValue co;
+  final IaqiValue? co;
   final IaqiValue? dew;
-  final IaqiValue h;
-  final IaqiValue no2;
-  final IaqiValue o3;
-  final IaqiValue p;
-  final IaqiValue pm10;
-  final IaqiValue pm25;
-  final IaqiValue so2;
+  final IaqiValue? h;
+  final IaqiValue? no2;
+  final IaqiValue? o3;
+  final IaqiValue? p;
+  final IaqiValue? pm10;
+  final IaqiValue? pm25;
+  final IaqiValue? so2;
   final IaqiValue t;
   final IaqiValue w;
   final IaqiValue? wg;
