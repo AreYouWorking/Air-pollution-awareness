@@ -228,12 +228,12 @@ class _CameraState extends State<Camera> with WidgetsBindingObserver {
         final data = await readExifFromBytes(await pickedFile.readAsBytes());
         if (data.isEmpty) {
           print("No EXIF information found");
-          return;
-        }
-        // TODO: read GPS information from photo and pass it to the editor
-        // GPS value should be in this
-        for (final entry in data.entries) {
-          print("${entry.key}: ${entry.value}");
+        } else {
+          // TODO: read GPS information from photo and pass it to the editor
+          // GPS value should be in this
+          for (final entry in data.entries) {
+            print("${entry.key}: ${entry.value}");
+          }
         }
 
         if (!mounted) return;
