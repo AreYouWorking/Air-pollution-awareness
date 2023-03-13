@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
@@ -83,7 +84,8 @@ class _PhotoEditorState extends State<PhotoEditor> {
     if (!mounted) return;
     double aspectRatio = decodedImage.width / decodedImage.height;
     double editingAreaWidth = MediaQuery.of(context).size.width;
-    double editingAreaHeight = editingAreaWidth * (1 / aspectRatio);
+    double editingAreaHeight = min(editingAreaWidth * (1 / aspectRatio),
+        MediaQuery.of(context).size.height);
 
     setState(() {
       _aspectRatio = aspectRatio;
@@ -163,6 +165,7 @@ class _PhotoEditorState extends State<PhotoEditor> {
   // https://www.youtube.com/watch?v=PTyvarfJiW8
   @override
   Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
     final editingArea = _editingAreaSize;
     final photoAspectRatio = _aspectRatio;
     final templates = _templates;
@@ -208,11 +211,32 @@ class _PhotoEditorState extends State<PhotoEditor> {
                   _activeItem!.scale = details.scale * _currentScale;
                   _hideMenu = true;
 
-                  if (details.focalPoint.dy > 700) {
-                    _nearDelete = true;
+                  final dx = details.focalPoint.dx;
+                  final dy = details.focalPoint.dy;
+
+                  // If picture size is big, the delete button is shown
+                  // overlaying on top of picture, else the button is on the
+                  // black bar.
+                  if (screenSize.height - 50 <
+                      screenSize.height / 2 + editingArea.height / 2) {
+                    // It would be more natural to delete the widget, if the
+                    // widget is dragged to the center, touching the delete
+                    // button.
+                    if (dx >= screenSize.width * 0.25 &&
+                        dx <= screenSize.width * 0.75 &&
+                        dy > screenSize.height - 50) {
+                      _nearDelete = true;
+                      return;
+                    }
                   } else {
-                    _nearDelete = false;
+                    // The delete button is on the black bar, just drag to the
+                    // black bar, then that widget is deleted.
+                    if (dy > screenSize.height / 2 + editingArea.height / 2) {
+                      _nearDelete = true;
+                      return;
+                    }
                   }
+                  _nearDelete = false;
                 });
               },
               child: Align(
@@ -247,7 +271,7 @@ class _PhotoEditorState extends State<PhotoEditor> {
                             Transform.scale(
                                 // TODO: Implement Zoom
                                 scale: 1,
-                                child: Image.file(widget.image)),
+                                child: Center(child: Image.file(widget.image))),
                             NotificationListener<ScrollNotification>(
                               onNotification: (scrollNotification) {
                                 if (scrollNotification
@@ -553,7 +577,7 @@ class _PhotoEditorState extends State<PhotoEditor> {
               print(details);
               print(details.position.dx);
               print(details.position.dy);
-              if (details.position.dy > 700) {
+              if (_nearDelete) {
                 _activeItem?.position = Offset(200, 800);
                 Vibration.vibrate(duration: 100);
               }
