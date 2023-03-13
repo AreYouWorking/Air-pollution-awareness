@@ -139,9 +139,11 @@ class _SelectlocationState extends State<Selectlocation> {
                         });
                       },
                       controller: textController,
+                      
                       decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        hintText: 'Search place',
+                        border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(50))),
+                        
+                        hintText: '   Search place',
                       ),
                     ),
                   )),
