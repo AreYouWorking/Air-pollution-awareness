@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
@@ -6,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 
+import '../utils.dart';
 import 'userposition.dart';
 
 const greyUI = Color.fromRGBO(28, 28, 30, 1);
@@ -15,7 +17,7 @@ class Suggestlocation {
   final String? city;
   final double lat;
   final double lon;
-  final double distance;
+  final double? distance;
 
   const Suggestlocation({
     required this.name,
@@ -47,7 +49,9 @@ List<Suggestlocation> parseJson(String responseBody) {
 }
 
 class Selectlocation extends StatefulWidget {
-  const Selectlocation({super.key});
+  const Selectlocation({super.key, required this.predefinedLocation});
+
+  final List<Suggestlocation> predefinedLocation;
 
   @override
   State<Selectlocation> createState() => _SelectlocationState();
@@ -55,14 +59,54 @@ class Selectlocation extends StatefulWidget {
 
 class _SelectlocationState extends State<Selectlocation> {
   final textController = TextEditingController();
-  List<Suggestlocation>? Suggestdata;
-  Widget suggestLocWidget = SizedBox.shrink();
+  List<Suggestlocation>? suggestData;
+  Widget suggestLocWidget = const SizedBox.shrink();
+  Widget userGPSLocWidget = const SizedBox.shrink();
+  Widget predefinedLocWidget = const SizedBox.shrink();
+
+  Timer? _debounce;
+  static const int searchDelayInMs = 300;
+  bool _isFetchingLocation = false;
+
+  @override
+  void initState() {
+    _refreshUserLocWidget();
+    setState(() {
+      predefinedLocWidget = displayLocationList(widget.predefinedLocation);
+    });
+    super.initState();
+  }
 
   @override
   void dispose() {
     // Clean up the controller when the widget is disposed.
     textController.dispose();
+    _debounce?.cancel();
     super.dispose();
+  }
+
+  void _onPressedRefreshUserLoc() async {
+    setState(() {
+      _isFetchingLocation = true;
+    });
+    textController.clear();
+    await fetchAndSetUserLocation();
+    print(Userposition.display_place_GPS);
+    _refreshUserLocWidget();
+    setState(() {
+      _isFetchingLocation = false;
+    });
+  }
+
+  void _refreshUserLocWidget() {
+    setState(() {
+      userGPSLocWidget = locationText(Suggestlocation(
+          name: Userposition.display_place_GPS,
+          city: null,
+          lat: double.parse(Userposition.latitudeGPS),
+          lon: double.parse(Userposition.longitudeGPS),
+          distance: null));
+    });
   }
 
   Future<List<Suggestlocation>> fetchSuggestlocation(
@@ -117,67 +161,101 @@ class _SelectlocationState extends State<Selectlocation> {
         appBar: AppBar(
           backgroundColor: Colors.black,
           title: const Text('เลือกตำแหน่งที่อยู่'),
+          actions: <Widget>[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(0, 8, 20, 8),
+              child: InkWell(
+                  onTap: _isFetchingLocation ? null : _onPressedRefreshUserLoc,
+                  child: _isFetchingLocation
+                      ? Transform.scale(
+                          scale: 0.6,
+                          child: const CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 5,
+                          ))
+                      : const Icon(Icons.refresh, size: 32)),
+            )
+          ],
         ),
         body: Column(children: [
-          Row(
-            //TODO style imporve
+          Column(
             children: [
-              Expanded(
-                  flex: 2,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 5, 0, 5),
-                    child: TextField(
-                      onChanged: (text) async {
-                        print('searchLocation text: $text');
-                        if (textController.text.length > 1) {
-                          Suggestdata =
-                              await searchLocation(textController.text);
-                        }
-
-                        setState(() {
-                          suggestLocWidget = displayLocationList(Suggestdata);
-                        });
-                      },
-                      controller: textController,
-                      
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(50))),
-                        
-                        hintText: '   Search place',
-                      ),
-                    ),
-                  )),
-              IconButton(
-                icon: const Icon(Icons.search),
-                tooltip: 'find place',
-                onPressed: () async {
-                  print(textController.text);
-                  Suggestdata = await searchLocation(textController.text);
-
-                  setState(() {
-                    suggestLocWidget = displayLocationList(Suggestdata);
-                  });
-                  print("Suggestdata");
-                  print(Suggestdata?.elementAt(0).name);
-                },
-              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
+                child: TextField(
+                  textInputAction: TextInputAction.search,
+                  onChanged: _onSearchChanged,
+                  controller: textController,
+                  decoration: const InputDecoration(
+                    prefixIcon: Icon(Icons.search),
+                    isDense: true,
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(16))),
+                    hintText: 'Search for location',
+                  ),
+                  style: const TextStyle(fontSize: 20),
+                ),
+              )
             ],
           ),
-          suggestLocWidget
+          Expanded(
+              child: Listener(
+            onPointerUp: (_) {
+              hideKeyboard();
+            },
+            child: ListView(
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              children: [
+                if (textController.text.trim().length > 1)
+                  const SizedBox.shrink()
+                else ...[userGPSLocWidget, predefinedLocWidget],
+                suggestLocWidget
+              ],
+            ),
+          ))
         ]));
   }
 
-  Widget displayLocationList(List<Suggestlocation>? suggestData) {
-    if (Suggestdata == null) {
+  _onSearchChanged(String text) {
+    if (_debounce?.isActive ?? false) _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: searchDelayInMs), () async {
+      print('searchLocation text: $text');
+      if (text.trim().length > 1) {
+        setState(() {
+          _isFetchingLocation = true;
+        });
+        suggestData = await searchLocation(textController.text);
+        setState(() {
+          suggestLocWidget = displayLocationList(suggestData);
+          _isFetchingLocation = false;
+        });
+      } else {
+        setState(() {
+          suggestLocWidget = Container();
+          _isFetchingLocation = false;
+        });
+      }
+    });
+  }
+
+  void hideKeyboard() {
+    FocusScopeNode currentFocus = FocusScope.of(context);
+    if (!currentFocus.hasPrimaryFocus && currentFocus.focusedChild != null) {
+      currentFocus.focusedChild!.unfocus();
+    }
+  }
+
+  Widget displayLocationList(List<Suggestlocation>? data) {
+    if (data == null) {
       return const SizedBox.shrink();
     } else {
-      return Column(
-          children: suggestData!.map((e) => locationText(e)).toList());
+      return Column(children: data.map((e) => locationText(e)).toList());
     }
   }
 
   InkWell locationText(Suggestlocation data) {
-    String dis = "Distance: ${(data.distance / 1000.0).toStringAsFixed(2)} Km";
+    String? label =
+        data.city != null ? "${data.name} (${data.city})" : data.name;
 
     return InkWell(
       onTap: () {
@@ -188,16 +266,26 @@ class _SelectlocationState extends State<Selectlocation> {
           width: double.infinity,
           color: Colors.black,
           child: Padding(
-              padding: const EdgeInsets.fromLTRB(32, 8, 16, 16),
+              padding: const EdgeInsets.fromLTRB(32, 8, 16, 8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("${data.name} (${data.city!})"),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(0, 4, 4, 0),
-                    child: Align(
-                        alignment: Alignment.centerLeft, child: Text(dis)),
-                  )
+                  Text(
+                    label!,
+                    style: const TextStyle(fontSize: 20),
+                  ),
+                  data.distance != null
+                      ? Padding(
+                          padding: const EdgeInsets.fromLTRB(0, 6, 6, 0),
+                          child: Align(
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                "Distance: ${(data.distance! / 1000.0).toStringAsFixed(2)} Km",
+                                style: const TextStyle(
+                                    fontSize: 20, color: Colors.white70),
+                              )),
+                        )
+                      : const SizedBox.shrink()
                 ],
               ))),
     );

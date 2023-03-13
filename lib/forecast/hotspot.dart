@@ -37,9 +37,9 @@ Future<int> parseCSV(List csv) async {
     List x = a.split(',');
     double dis = await calDistance(
         double.parse('${x[1]}'),
-        double.parse(Userposition.latitude),
+        double.parse(Userposition.latitudeChosen),
         double.parse('${x[2]}'),
-        double.parse(Userposition.longitude));
+        double.parse(Userposition.longitudeChosen));
     if (dis < 100) {
       numberHotspot++;
     }

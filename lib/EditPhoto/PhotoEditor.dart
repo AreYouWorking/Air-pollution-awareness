@@ -8,6 +8,9 @@ import 'package:app/EditPhoto/recommendation_text1.dart';
 import 'package:app/EditPhoto/recommendation_text2.dart';
 import 'package:app/EditPhoto/templates.dart';
 import 'package:app/EditPhoto/text_widget_icon.dart';
+import 'package:app/api/aqicn/geofeed.dart';
+import 'package:app/location/selectlocation.dart';
+import 'package:app/location/userposition.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:path_provider/path_provider.dart';
@@ -56,6 +59,9 @@ class _PhotoEditorState extends State<PhotoEditor> {
   final maxSlideUpPanelSize = 1.0;
   static const int slideUpAnimationDurationInMs = 300;
 
+  int? _aqi;
+  String? _placeName;
+
   OverlaidWidget? _activeItem;
   late Offset _initPos;
   late Offset _currentPos;
@@ -71,18 +77,33 @@ class _PhotoEditorState extends State<PhotoEditor> {
     return paletteGenerator.dominantColor!.color;
   }
 
-  void _initTemplateSize() async {
+  void _initTemplate() async {
     var decodedImage =
         await decodeImageFromList(widget.image.readAsBytesSync());
     if (!mounted) return;
     double aspectRatio = decodedImage.width / decodedImage.height;
     double editingAreaWidth = MediaQuery.of(context).size.width;
     double editingAreaHeight = editingAreaWidth * (1 / aspectRatio);
+
     setState(() {
       _aspectRatio = aspectRatio;
       _editingAreaSize = Size(editingAreaWidth, editingAreaHeight);
-      _templates = buildTemplates(150, "Suthep, Chiang Mai", _editingAreaSize!);
     });
+    _fetchData();
+  }
+
+  void _fetchData() async {
+    showLoaderDialog(context);
+    Data aqicn = await getData(
+        Userposition.latitudeChosen, Userposition.longitudeChosen);
+
+    setState(() {
+      _templates = buildTemplates(
+          aqicn.aqi, Userposition.display_place_Chosen, _editingAreaSize!);
+      _aqi = aqicn.aqi;
+      _placeName = Userposition.display_place_Chosen;
+    });
+    if (mounted) Navigator.pop(context);
   }
 
   Future<File> _savePicture() async {
@@ -129,7 +150,7 @@ class _PhotoEditorState extends State<PhotoEditor> {
   @override
   void initState() {
     _dominantColorFuture = _getImagePalette(FileImage(widget.image));
-    _initTemplateSize();
+    _initTemplate();
     super.initState();
   }
 
@@ -145,8 +166,10 @@ class _PhotoEditorState extends State<PhotoEditor> {
     final editingArea = _editingAreaSize;
     final photoAspectRatio = _aspectRatio;
     final templates = _templates;
+    final aqi = _aqi;
+    final placeName = _placeName;
 
-    if (editingArea == null) {
+    if (editingArea == null || aqi == null || placeName == null) {
       return Container();
     }
 
@@ -187,10 +210,9 @@ class _PhotoEditorState extends State<PhotoEditor> {
 
                   if (details.focalPoint.dy > 700) {
                     _nearDelete = true;
-                  }else{
+                  } else {
                     _nearDelete = false;
                   }
-
                 });
               },
               child: Align(
@@ -242,6 +264,7 @@ class _PhotoEditorState extends State<PhotoEditor> {
                                 return true;
                               },
                               child: PageView.builder(
+                                key: Key('$aqi$_placeName'),
                                 controller: _pageController,
                                 scrollDirection: Axis.horizontal,
                                 physics: _isTemplateChangeAllowed == true
@@ -263,79 +286,12 @@ class _PhotoEditorState extends State<PhotoEditor> {
               )),
           _hideMenu ? Container() : _getTopMenu(),
           _hideDelete ? Container() : _getDeleteButton(),
-          DraggableScrollableSheet(
-              initialChildSize: minSlideUpPanelSize,
-              minChildSize: minSlideUpPanelSize,
-              snap: true,
-              snapSizes: [midSlideUpPanelSize],
-              snapAnimationDuration:
-                  const Duration(milliseconds: slideUpAnimationDurationInMs),
-              controller: slideUpPanelController,
-              builder: (context, scrollController) {
-                return Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16.0),
-                      color: const Color.fromRGBO(0, 0, 0, 0.8),
-                    ),
-                    child: Column(
-                      children: [
-                        const Icon(
-                          Icons.horizontal_rule_rounded,
-                          size: 36,
-                        ),
-                        Expanded(
-                          child: ListView(
-                            itemExtent: 120.0,
-                            controller: scrollController,
-                            children: <Widget>[
-                              AqiWidget(
-                                  aqi: 80,
-                                  fontSize: 64,
-                                  defaultVariation: WidgetVariation.whiteNoBg),
-                              AqiWidgetEmoji(
-                                  aqi: 80,
-                                  fontSize: 64,
-                                  defaultVariation: WidgetVariation.whiteNoBg),
-                              TextWidgetIcon(
-                                  text: "suthep, chiang mai",
-                                  fontSize: 36,
-                                  iconFilePath:
-                                      'assets/icons/near_me_FILL1_wght400_GRAD0_opsz48.svg',
-                                  defaultVariation: WidgetVariation.whiteNoBg),
-                              RecommendationText1(
-                                aqi: 80,
-                                fontSize: 36,
-                                defaultVariation: WidgetVariation.whiteNoBg,
-                                iconOrNoIcon: false,
-                              ),
-                              RecommendationText2(
-                                aqi: 80,
-                                fontSize: 36,
-                                defaultVariation: WidgetVariation.whiteNoBg,
-                                iconOrNoIcon: false,
-                              ),
-                              RecommendationText1(
-                                aqi: 80,
-                                fontSize: 36,
-                                defaultVariation: WidgetVariation.whiteNoBg,
-                                iconOrNoIcon: true,
-                              ),
-                              RecommendationText2(
-                                aqi: 80,
-                                fontSize: 36,
-                                defaultVariation: WidgetVariation.whiteNoBg,
-                                iconOrNoIcon: true,
-                              )
-                            ].map(_buildWidgetPreviewTile).toList(),
-                          ),
-                        ),
-                      ],
-                    ));
-              })
+          _getAddWidgetMenu(aqi, placeName)
         ]));
   }
 
   void _animateShowPanel() {
+    if (_templates == null) return;
     slideUpPanelController.animateTo(midSlideUpPanelSize,
         duration: const Duration(milliseconds: slideUpAnimationDurationInMs),
         curve: Curves.easeIn);
@@ -357,19 +313,120 @@ class _PhotoEditorState extends State<PhotoEditor> {
     });
   }
 
+// https://stackoverflow.com/questions/51415236/show-circular-progress-dialog-in-login-screen-in-flutter-how-to-implement-progr
+  showLoaderDialog(BuildContext context) {
+    AlertDialog alert = AlertDialog(
+      content: Row(
+        children: [
+          const CircularProgressIndicator(),
+          Container(
+              margin: const EdgeInsets.only(left: 24),
+              child: const Text("Loading...")),
+        ],
+      ),
+    );
+    showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (BuildContext context) {
+        return WillPopScope(onWillPop: () async => true, child: alert);
+      },
+    );
+  }
+
+  Widget _getAddWidgetMenu(int aqi, String placeName) {
+    return DraggableScrollableSheet(
+        initialChildSize: minSlideUpPanelSize,
+        minChildSize: minSlideUpPanelSize,
+        snap: true,
+        snapSizes: [midSlideUpPanelSize],
+        snapAnimationDuration:
+            const Duration(milliseconds: slideUpAnimationDurationInMs),
+        controller: slideUpPanelController,
+        builder: (context, scrollController) {
+          return Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16.0),
+                color: const Color.fromRGBO(0, 0, 0, 0.8),
+              ),
+              child: Column(
+                children: [
+                  const Icon(
+                    Icons.horizontal_rule_rounded,
+                    size: 36,
+                  ),
+                  Expanded(
+                    child: ListView(
+                      itemExtent: 120.0,
+                      controller: scrollController,
+                      key: Key('$aqi$_placeName'),
+                      children: <Widget>[
+                        AqiWidget(
+                            aqi: aqi,
+                            fontSize: 64,
+                            defaultVariation: WidgetVariation.whiteNoBg),
+                        AqiWidgetEmoji(
+                            aqi: aqi,
+                            fontSize: 64,
+                            defaultVariation: WidgetVariation.whiteNoBg),
+                        TextWidgetIcon(
+                            text: placeName,
+                            fontSize: 36,
+                            iconFilePath:
+                                'assets/icons/near_me_FILL1_wght400_GRAD0_opsz48.svg',
+                            defaultVariation: WidgetVariation.whiteNoBg),
+                        RecommendationText1(
+                          aqi: aqi,
+                          fontSize: 36,
+                          defaultVariation: WidgetVariation.whiteNoBg,
+                          iconOrNoIcon: false,
+                        ),
+                        RecommendationText2(
+                          aqi: aqi,
+                          fontSize: 36,
+                          defaultVariation: WidgetVariation.whiteNoBg,
+                          iconOrNoIcon: false,
+                        ),
+                        RecommendationText1(
+                          aqi: aqi,
+                          fontSize: 36,
+                          defaultVariation: WidgetVariation.whiteNoBg,
+                          iconOrNoIcon: true,
+                        ),
+                        RecommendationText2(
+                          aqi: aqi,
+                          fontSize: 36,
+                          defaultVariation: WidgetVariation.whiteNoBg,
+                          iconOrNoIcon: true,
+                        )
+                      ].map(_buildWidgetPreviewTile).toList(),
+                    ),
+                  ),
+                ],
+              ));
+        });
+  }
+
   Widget _getDeleteButton() {
     return Align(
         alignment: AlignmentDirectional.bottomCenter,
         child: Container(
             padding: const EdgeInsets.fromLTRB(8.0, 24.0, 8.0, 24.0),
             child:
-                  // Go back
-                  _circularButton(() {
-                    // TODO: show confirm dialog before going back
-                    if (!mounted) return;print("inside");
-                    Navigator.pop(context);
-                  }, const Color(0x64000000),
-                      Icon(Icons.delete, size: 28, color: _nearDelete? Colors.red: Colors.white,))));}
+                // Go back
+                _circularButton(() {
+              // TODO: show confirm dialog before going back
+              if (!mounted) return;
+              print("inside");
+              Navigator.pop(context);
+            },
+                    const Color(0x64000000),
+                    Icon(
+                      Icons.delete,
+                      size: 28,
+                      color: _nearDelete ? Colors.red : Colors.white,
+                    ))));
+  }
 
   Widget _getTopMenu() {
     return Align(
@@ -390,8 +447,29 @@ class _PhotoEditorState extends State<PhotoEditor> {
                       spacing: 2,
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: <Widget>[
-                        _circularButton(() {}, const Color(0x64000000),
-                            const Text("T", style: TextStyle(fontSize: 28))),
+                        // Change location
+                        _circularButton(() async {
+                          if (!mounted) return;
+                          final chosenLocation = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const Selectlocation(
+                                      predefinedLocation: [],
+                                    )),
+                          );
+                          if (chosenLocation != null) {
+                            setState(() {
+                              Userposition.setChosenLocation(
+                                  chosenLocation.lat.toString(),
+                                  chosenLocation.lon.toString(),
+                                  chosenLocation.name);
+                            });
+                            _fetchData();
+                          }
+                        },
+                            const Color(0x64000000),
+                            const Icon(Icons.edit_location_alt_outlined,
+                                size: 32)),
                         // Add widget
                         _circularButton(
                             _animateShowPanel,
@@ -475,7 +553,7 @@ class _PhotoEditorState extends State<PhotoEditor> {
               print(details);
               print(details.position.dx);
               print(details.position.dy);
-              if(details.position.dy > 700){
+              if (details.position.dy > 700) {
                 _activeItem?.position = Offset(200, 800);
                 Vibration.vibrate(duration: 100);
               }

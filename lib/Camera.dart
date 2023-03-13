@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:app/main.dart';
 import 'package:camera/camera.dart';
+import 'package:exif/exif.dart';
 import 'package:flutter/material.dart';
 import 'package:app/EditPhoto/PhotoEditor.dart';
 import 'package:flutter/services.dart';
@@ -225,6 +226,17 @@ class _CameraState extends State<Camera> with WidgetsBindingObserver {
       final XFile? pickedFile =
           await _picker.pickImage(source: ImageSource.gallery);
       if (pickedFile != null) {
+        final data = await readExifFromBytes(await pickedFile.readAsBytes());
+        if (data.isEmpty) {
+          print("No EXIF information found");
+          return;
+        }
+        // TODO: read GPS information from photo and pass it to the editor
+        // GPS value should be in this
+        for (final entry in data.entries) {
+          print("${entry.key}: ${entry.value}");
+        }
+
         if (!mounted) return;
         Navigator.push(
           context,
@@ -239,17 +251,6 @@ class _CameraState extends State<Camera> with WidgetsBindingObserver {
     }
 
     // TODO: Get geolocation from EXIF
-    // if (imageFile != null) {
-    //   final data = await readExifFromBytes(imageFile!.readAsBytesSync());
-    //   if (data.isEmpty) {
-    //     print("No EXIF information found");
-    //     return;
-    //   }
-    //   // GPS value should be in this.
-    //   for (final entry in data.entries) {
-    //     print("${entry.key}: ${entry.value}");
-    //   }
-    // }
   }
 
   void flipCamera() async {

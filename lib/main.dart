@@ -8,7 +8,6 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:geolocator/geolocator.dart';
 
 import '/location/selectlocation.dart';
 import 'location/userposition.dart';
@@ -58,8 +57,8 @@ class _MainScreen extends State<MainScreen> {
       _forecastData = ForecastData(created: _forecastData.created);
     });
 
-    var newForecastData =
-        await ForecastData.init(Userposition.latitude, Userposition.longitude);
+    var newForecastData = await ForecastData.init(
+        Userposition.latitudeChosen, Userposition.longitudeChosen);
     setState(() {
       _forecastData = newForecastData;
     });
@@ -67,13 +66,7 @@ class _MainScreen extends State<MainScreen> {
 
   Future<void> _initData() async {
     try {
-      Position v = await getCurrentLocation();
-      Userposition.proximity_latitude = "${v.latitude}";
-      Userposition.proximity_longitude = "${v.longitude}";
-      Userposition.latitude = "${v.latitude}";
-      Userposition.longitude = "${v.longitude}";
-
-      Userposition.display_place = await getCurrentPlaceName();
+      await fetchAndSetUserLocation();
 
       _forecastUpdate();
       _everyHour = Timer.periodic(const Duration(hours: 1), (Timer t) {
@@ -115,15 +108,17 @@ class _MainScreen extends State<MainScreen> {
                       final chosenLocation = await Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const Selectlocation(),
+                            builder: (context) =>
+                                const Selectlocation(predefinedLocation: []),
                           ));
                       print(chosenLocation);
                       setState(() {
                         print("data");
-                        Userposition.display_place = chosenLocation.name;
-                        Userposition.latitude = chosenLocation.lat.toString();
-                        Userposition.longitude = chosenLocation.lon.toString();
-                        print(Userposition.display_place);
+                        Userposition.setChosenLocation(
+                            chosenLocation.lat.toString(),
+                            chosenLocation.lon.toString(),
+                            chosenLocation.name);
+                        print(Userposition.display_place_Chosen);
                         _forecastUpdate();
                       });
                     },
@@ -134,7 +129,7 @@ class _MainScreen extends State<MainScreen> {
                         const Icon(Icons.near_me_outlined),
                         Flexible(
                             child: Text(
-                          Userposition.display_place,
+                          Userposition.display_place_Chosen,
                           textScaleFactor: 0.7,
                           overflow: TextOverflow.ellipsis,
                           maxLines: 1,

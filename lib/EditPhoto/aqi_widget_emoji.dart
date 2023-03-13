@@ -121,11 +121,11 @@ class _AqiWidgetEmojiState extends State<AqiWidgetEmoji> {
     } else if (aqi <= 150) {
       return 'assets/icons/USG_Emoji.svg';
     } else if (aqi <= 200) {
-      return 'assets/icons/Unhealthy_ Emoji.svg';
+      return 'assets/icons/Unhealthy_Emoji.svg';
     } else if (aqi <= 300) {
-      return 'assets/icons/Very_Unhealthy_ Emoji.svg';
+      return 'assets/icons/Very_Unhealthy_Emoji.svg';
     } else {
-      return 'assets/icons/Hazardous_ Emoji.svg';
+      return 'assets/icons/Hazardous_Emoji.svg';
     }
   }
 }
