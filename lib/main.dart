@@ -112,15 +112,17 @@ class _MainScreen extends State<MainScreen> {
                                 const Selectlocation(predefinedLocation: []),
                           ));
                       print(chosenLocation);
-                      setState(() {
-                        print("data");
-                        Userposition.setChosenLocation(
-                            chosenLocation.lat.toString(),
-                            chosenLocation.lon.toString(),
-                            chosenLocation.name);
-                        print(Userposition.display_place_Chosen);
-                        _forecastUpdate();
-                      });
+                      if (chosenLocation != null) {
+                        setState(() {
+                          print("data");
+                          Userposition.setChosenLocation(
+                              chosenLocation.lat.toString(),
+                              chosenLocation.lon.toString(),
+                              chosenLocation.name);
+                          print(Userposition.display_place_Chosen);
+                          _forecastUpdate();
+                        });
+                      }
                     },
                     child: Row(
                       mainAxisSize: MainAxisSize.max,
