@@ -40,8 +40,13 @@ Future<String> fetchPlaceName(String lat, String lon) async {
 
 Future<void> fetchAndSetUserLocation() async {
   Position pos = await fetchCurrentLocation();
-  String placeName =
-      await fetchPlaceName(pos.latitude.toString(), pos.longitude.toString());
-  Userposition.setCurrentLocation(
-      pos.latitude.toString(), pos.longitude.toString(), placeName);
+  // if new position is not the same as old position,
+  // then fetch place name and set new current position
+  if (pos.latitude.toString() != Userposition.latitudeGPS &&
+      pos.longitude.toString() != Userposition.longitudeGPS) {
+    String placeName =
+        await fetchPlaceName(pos.latitude.toString(), pos.longitude.toString());
+    Userposition.setCurrentLocation(
+        pos.latitude.toString(), pos.longitude.toString(), placeName);
+  }
 }
