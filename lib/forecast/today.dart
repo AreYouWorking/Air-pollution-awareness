@@ -78,10 +78,12 @@ class _TodayWidgetState extends State<TodayWidget> {
                       Text(
                         "AQI ${todayData.aqi}",
                         textScaleFactor: 2.0,
+                        style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)
                       ),
                       Text(
                         todayData.text,
                         textScaleFactor: 1.5,
+                        style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)
                       )
                     ],
                   ),
@@ -112,35 +114,35 @@ class _TodayWidgetState extends State<TodayWidget> {
     var temp = todayData.temperature;
     var tempStr = "";
     if (temp < 20) {
-      tempStr = "หนาว";
+      tempStr = "cold";
     } else if (temp < 25) {
-      tempStr = "อบอุ่น";
+      tempStr = "warm";
     } else if (temp < 27) {
-      tempStr = "ร้อน";
+      tempStr = "hot";
     } else {
-      tempStr = "ร้อนมาก";
+      tempStr = "very hot";
     }
 
     var wind = todayData.wind;
     var windStr = "";
-    if (wind < 5) {
-      windStr = "ลมสงบ";
+    if (wind < 1) {
+      windStr = "calm";
     } else if (wind < 10) {
-      windStr = "ลมเล็กน้อย";
+      windStr = "light breeze";
     } else if (wind < 15) {
-      windStr = "ลมปานกลาง";
+      windStr = "Moderate breeze";
     } else {
-      windStr = "ลมแรง";
+      windStr = "Strong breeze";
     }
     return [
       Expanded(
         child: Column(
           children: [
             Text(
-              "${todayData.hotspot} 🥵",
+              "${todayData.hotspot} 🔥",
               textScaleFactor: 1.5,
             ),
-            const Text("จุดความร้อน")
+            const Text("Hotspot")
           ],
         ),
       ),

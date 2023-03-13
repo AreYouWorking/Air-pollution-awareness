@@ -73,8 +73,8 @@ class _DailyWidgetState extends State<DailyWidget> {
                     const SizedBox(
                       height: 5,
                     ),
-                    Text("AQI ${data.aqi}"),
-                    Text(data.text)
+                    Text("AQI ${data.aqi}", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                    Text(data.text , style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold) )
                   ]),
             ),
           ),
