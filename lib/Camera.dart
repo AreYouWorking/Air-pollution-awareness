@@ -145,7 +145,6 @@ class _CameraState extends State<Camera> with WidgetsBindingObserver {
         overlays: SystemUiOverlay.values);
     WidgetsBinding.instance.removeObserver(this);
     if (controller != null && controller!.value.isInitialized) {
-      controller?.stopImageStream();
       controller?.dispose();
     }
     super.dispose();
