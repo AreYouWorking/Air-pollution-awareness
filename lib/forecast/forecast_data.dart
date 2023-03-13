@@ -12,19 +12,19 @@ import 'hotspot.dart';
 
 DailyData _fromAqi(int aqi, DateTime datetime) {
   if (aqi <= 50) {
-    return DailyData(style.aqiColor[0], "😍", aqi, "ดีต่อสุขภาพ", datetime);
+    return DailyData(style.aqiColor[0], "😍", aqi, "Good", datetime);
   } else if (aqi <= 100) {
-    return DailyData(style.aqiColor[1], "😐", aqi, "ปานกลาง", datetime);
+    return DailyData(style.aqiColor[1], "😐", aqi, "Moderate", datetime);
   } else if (aqi <= 150) {
     return DailyData(
-        style.aqiColor[2], "🙁", aqi, "แย่ต่อกลุ่มเสี่ยง", datetime);
+        style.aqiColor[2], "🙁", aqi, "Unhealthy \n for some", datetime);
   } else if (aqi <= 200) {
-    return DailyData(style.aqiColor[3], "😨", aqi, "แย่ต่อสุขภาพ", datetime);
+    return DailyData(style.aqiColor[3], "😨", aqi, "Unhealthy", datetime);
   } else if (aqi <= 300) {
-    return DailyData(style.aqiColor[4], "😱", aqi, "แย่ต่อสุขภาพมาก", datetime);
+    return DailyData(style.aqiColor[4], "😱", aqi, "Very Unhealthy", datetime);
   }
   return DailyData(
-      style.aqiColor[5], "😵", aqi, "อันตรายต่อสุขภาพมาก", datetime);
+      style.aqiColor[5], "😵", aqi, "Hazardous", datetime);
 }
 
 class ForecastData {
