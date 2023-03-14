@@ -34,7 +34,7 @@ class _ForecastState extends State<Forecast> {
               infoCard("Today", Colors.transparent, 200,
                   TodayWidget(data: widget.data)),
               infoCard(
-                  "Daily", style.greyUI, 180, DailyWidget(data: widget.data)),
+                  "Daily", style.greyUI, 200, DailyWidget(data: widget.data)),
               infoCard(
                   "Hourly", style.greyUI, 260, HourlyWidget(data: widget.data)),
               Center(
