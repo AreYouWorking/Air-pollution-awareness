@@ -79,16 +79,16 @@ class ForecastData {
     }
 
     List<HourlyChartData> res = [];
-
-    List factor = List.generate(3, (index) => aqicn!.aqi / openmeteo!.hourly.us_aqi_pm2_5[index]!) ;
+    var dailyData = getDailyDatas();
+    List factor = List.generate(3, (index) => dailyData![index].aqi / openmeteo!.hourly.us_aqi_pm2_5[index*24]!) ;
     for (var i = 0; i <= 72; i++) {
       if (openmeteo!.hourly.us_aqi_pm2_5[i] == null) {
         break;
       }
       int aqi = 0;
-      if(i <= 24){
+      if(i <= 23){
         aqi = (openmeteo!.hourly.us_aqi_pm2_5[i]! * factor[0]).ceil();
-      }else if(i <= 48){
+      }else if(i <= 47){
         aqi = (openmeteo!.hourly.us_aqi_pm2_5[i]! * factor[1]).ceil();
       }else{
         aqi = (openmeteo!.hourly.us_aqi_pm2_5[i]! * factor[2]).ceil();
