@@ -79,7 +79,7 @@ List<List<OverlaidWidget>> buildTemplates(
 
   AqiWidget aqiBlackNoBgSmall = AqiWidget(
     aqi: aqi,
-    fontSize: 56,
+    fontSize: 48,
     defaultVariation: WidgetVariation.blackNoBg,
   );
 
@@ -99,14 +99,14 @@ List<List<OverlaidWidget>> buildTemplates(
 
   RecommendationText1 recommendText1BlackNoBgNoIconSmall = RecommendationText1(
     aqi: aqi,
-    fontSize: 22,
+    fontSize: 20,
     defaultVariation: WidgetVariation.blackNoBg,
     iconOrNoIcon: false,
   );
 
   RecommendationText2 recommendText2BlackNoBgNoIconSmall = RecommendationText2(
     aqi: aqi,
-    fontSize: 22,
+    fontSize: 20,
     defaultVariation: WidgetVariation.blackNoBg,
     iconOrNoIcon: false,
   );
@@ -183,11 +183,11 @@ List<List<OverlaidWidget>> buildTemplates(
       OverlaidWidget()
         ..widget = recommendText1BlackNoBgNoIconSmall
         ..position = alignBottomLeft(
-            aqiBlackNoBgSmall.textSize().width + 20, 100, editingAreaSize),
+            aqiBlackNoBgSmall.textSize().width + 30, 100, editingAreaSize),
       OverlaidWidget()
         ..widget = recommendText2BlackNoBgNoIconSmall
         ..position = alignBottomLeft(
-            aqiBlackNoBgSmall.textSize().width + 20, 70, editingAreaSize),
+            aqiBlackNoBgSmall.textSize().width + 30, 70, editingAreaSize),
     ],
     [
       //   // TODO: template4
@@ -200,11 +200,11 @@ List<List<OverlaidWidget>> buildTemplates(
       OverlaidWidget()
         ..widget = recommendText1BlackNoBgNoIconSmall
         ..position = alignTopLeft(
-            aqiBlackNoBgSmall.textSize().width + 20, 50, editingAreaSize),
+            aqiBlackNoBgSmall.textSize().width + 30, 50, editingAreaSize),
       OverlaidWidget()
         ..widget = recommendText2BlackNoBgNoIconSmall
         ..position = alignTopLeft(
-            aqiBlackNoBgSmall.textSize().width + 20, 80, editingAreaSize),
+            aqiBlackNoBgSmall.textSize().width + 30, 80, editingAreaSize),
       OverlaidWidget()
         ..widget = locationBlack
         ..position = alignBottomRight(
