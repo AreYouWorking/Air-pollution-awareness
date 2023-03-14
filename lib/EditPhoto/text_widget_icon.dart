@@ -1,7 +1,6 @@
 import 'package:app/EditPhoto/templates.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class TextWidgetIcon extends StatefulWidget {
   const TextWidgetIcon(
@@ -20,8 +19,11 @@ class TextWidgetIcon extends StatefulWidget {
     final TextPainter textPainter = TextPainter(
         text: TextSpan(
             text: text,
-            style: GoogleFonts.oswald(
-                fontWeight: FontWeight.w700, fontSize: fontSize, height: 1)),
+            style: TextStyle(
+                fontFamily: 'Oswald',
+                fontWeight: FontWeight.w700,
+                fontSize: fontSize,
+                height: 1)),
         maxLines: 1,
         textDirection: TextDirection.ltr)
       ..layout(minWidth: 0, maxWidth: double.infinity);
@@ -78,7 +80,8 @@ class _TextWidgetIconState extends State<TextWidgetIcon> {
         )),
         TextSpan(
             text: widget.text,
-            style: GoogleFonts.oswald(
+            style: TextStyle(
+              fontFamily: 'Oswald',
               fontWeight: FontWeight.w700,
               fontSize: widget.fontSize,
               color: Colors.white,
@@ -107,7 +110,8 @@ class _TextWidgetIconState extends State<TextWidgetIcon> {
         )),
         TextSpan(
             text: widget.text,
-            style: GoogleFonts.oswald(
+            style: TextStyle(
+              fontFamily: 'Oswald',
               fontWeight: FontWeight.w700,
               fontSize: widget.fontSize,
               color: Colors.black,

@@ -1,7 +1,6 @@
 import 'package:app/EditPhoto/templates.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class AqiWidgetEmoji extends StatefulWidget {
   const AqiWidgetEmoji(
@@ -51,7 +50,8 @@ class _AqiWidgetEmojiState extends State<AqiWidgetEmoji> {
       children: [
         TextSpan(
             text: "AQI ${widget.aqi}",
-            style: GoogleFonts.oswald(
+            style: TextStyle(
+              fontFamily: 'Oswald',
               fontWeight: FontWeight.w700,
               fontSize: widget.fontSize,
               color: Colors.white,
@@ -76,7 +76,8 @@ class _AqiWidgetEmojiState extends State<AqiWidgetEmoji> {
       children: [
         TextSpan(
             text: "AQI ${widget.aqi}",
-            style: GoogleFonts.oswald(
+            style: TextStyle(
+              fontFamily: 'Oswald',
               fontWeight: FontWeight.w700,
               fontSize: widget.fontSize,
               color: Colors.black,

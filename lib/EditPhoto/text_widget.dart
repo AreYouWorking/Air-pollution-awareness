@@ -1,7 +1,5 @@
 import 'package:app/EditPhoto/templates.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class TextWidget extends StatefulWidget {
   const TextWidget(
@@ -47,7 +45,8 @@ class _TextWidgetState extends State<TextWidget> {
 
   Widget whiteNoBg() {
     return Text(widget.text,
-        style: GoogleFonts.oswald(
+        style: TextStyle(
+            fontFamily: 'Oswald',
             fontWeight: FontWeight.w700,
             fontSize: widget.fontSize,
             color: Colors.white,
@@ -56,7 +55,8 @@ class _TextWidgetState extends State<TextWidget> {
 
   Widget blackNoBg() {
     return Text(widget.text,
-        style: GoogleFonts.oswald(
+        style: TextStyle(
+            fontFamily: 'Oswald',
             fontWeight: FontWeight.w700,
             fontSize: widget.fontSize,
             color: Colors.black,

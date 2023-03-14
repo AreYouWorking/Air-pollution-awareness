@@ -2,7 +2,6 @@ import 'package:app/EditPhoto/templates.dart';
 import 'package:app/EditPhoto/text_widget.dart';
 import 'package:app/EditPhoto/text_widget_icon.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class RecommendationText1 extends StatelessWidget {
   const RecommendationText1(
@@ -22,8 +21,11 @@ class RecommendationText1 extends StatelessWidget {
     final TextPainter textPainter = TextPainter(
         text: TextSpan(
             text: text,
-            style: GoogleFonts.oswald(
-                fontWeight: FontWeight.w700, fontSize: fontSize, height: 1)),
+            style: TextStyle(
+                fontFamily: 'Oswald',
+                fontWeight: FontWeight.w700,
+                fontSize: fontSize,
+                height: 1)),
         maxLines: 1,
         textDirection: TextDirection.ltr)
       ..layout(minWidth: 0, maxWidth: double.infinity);

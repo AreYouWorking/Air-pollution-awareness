@@ -1,8 +1,8 @@
 import 'package:app/EditPhoto/templates.dart';
 import 'package:app/EditPhoto/text_widget.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class AqiWidget extends StatelessWidget {
   const AqiWidget(
@@ -19,8 +19,11 @@ class AqiWidget extends StatelessWidget {
     final TextPainter textPainter = TextPainter(
         text: TextSpan(
             text: "AQI $aqi",
-            style: GoogleFonts.oswald(
-                fontWeight: FontWeight.w700, fontSize: fontSize, height: 1)),
+            style: TextStyle(
+                fontFamily: 'Oswald',
+                fontWeight: FontWeight.w700,
+                fontSize: fontSize,
+                height: 1)),
         maxLines: 1,
         textDirection: TextDirection.ltr)
       ..layout(minWidth: 0, maxWidth: double.infinity);
@@ -30,6 +33,8 @@ class AqiWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TextWidget(
-        text: "AQI $aqi", fontSize: fontSize, defaultVariation: defaultVariation);
+        text: "AQI $aqi",
+        fontSize: fontSize,
+        defaultVariation: defaultVariation);
   }
 }
