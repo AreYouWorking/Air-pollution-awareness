@@ -30,17 +30,19 @@ class HotspotData {
   }
 }
 
+const searchRadiusInKm = 100;
+
 Future<int> parseCSV(List csv) async {
   int numberHotspot = 0;
   for (var i = 1; i < csv.length; i++) {
     String a = csv[i];
     List x = a.split(',');
-    double dis = await calDistance(
+    double distance = await calDistance(
         double.parse('${x[1]}'),
         double.parse(Userposition.latitudeChosen),
         double.parse('${x[2]}'),
         double.parse(Userposition.longitudeChosen));
-    if (dis < 100) {
+    if (distance < searchRadiusInKm) {
       numberHotspot++;
     }
   }

@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:app/EditPhoto/recommendation_text1.dart';
 import 'package:app/EditPhoto/recommendation_text2.dart';
+import 'package:app/EditPhoto/text_widget.dart';
 import 'package:app/EditPhoto/text_widget_icon.dart';
 import 'package:flutter/cupertino.dart';
 
@@ -58,7 +59,7 @@ Offset alignBottomCenter(
 }
 
 List<List<OverlaidWidget>> buildTemplates(
-    int aqi, String location, Size editingAreaSize) {
+    int aqi, String location, int hotspot, Size editingAreaSize) {
   AqiWidgetEmoji aqiWhiteNoBgEmoji = AqiWidgetEmoji(
     aqi: aqi,
     fontSize: 64,
@@ -190,7 +191,24 @@ List<List<OverlaidWidget>> buildTemplates(
             aqiBlackNoBgSmall.textSize().width + 30, 70, editingAreaSize),
     ],
     [
-      //   // TODO: template4
+      // template4
+      OverlaidWidget()
+        ..widget = aqiBlackNoBgSmall
+        ..position = alignBottomLeft(10, 100, editingAreaSize),
+      OverlaidWidget()
+        ..widget = TextWidget(
+            text: '$hotspot hot spots near me',
+            fontSize: 20,
+            defaultVariation: WidgetVariation.blackNoBg)
+        ..position = alignBottomLeft(
+            aqiBlackNoBgSmall.textSize().width + 30, 100, editingAreaSize),
+      OverlaidWidget()
+        ..widget = TextWidget(
+            text: location,
+            fontSize: 20,
+            defaultVariation: WidgetVariation.blackNoBg)
+        ..position = alignBottomLeft(
+            aqiBlackNoBgSmall.textSize().width + 30, 70, editingAreaSize),
     ],
     [
       // template5
@@ -259,7 +277,7 @@ List<List<OverlaidWidget>> buildTemplates(
         ..position = alignBottomLeft(20, 100, editingAreaSize),
     ],
     [
-      // TODO: template9
+      // blank just for user to edit
     ],
   ];
 }

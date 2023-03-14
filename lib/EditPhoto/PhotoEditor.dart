@@ -10,6 +10,7 @@ import 'package:app/EditPhoto/recommendation_text2.dart';
 import 'package:app/EditPhoto/templates.dart';
 import 'package:app/EditPhoto/text_widget_icon.dart';
 import 'package:app/api/aqicn/geofeed.dart';
+import 'package:app/forecast/hotspot.dart';
 import 'package:app/location/selectlocation.dart';
 import 'package:app/location/userposition.dart';
 import 'package:flutter/material.dart';
@@ -99,9 +100,10 @@ class _PhotoEditorState extends State<PhotoEditor> {
     Data aqicn = await getData(
         Userposition.latitudeChosen, Userposition.longitudeChosen);
 
+    int hotspot = await searchHotspot();
     setState(() {
-      _templates = buildTemplates(
-          aqicn.aqi, Userposition.display_place_Chosen, _editingAreaSize!);
+      _templates = buildTemplates(aqicn.aqi, Userposition.display_place_Chosen,
+          hotspot, _editingAreaSize!);
       _aqi = aqicn.aqi;
       _placeName = Userposition.display_place_Chosen;
     });
