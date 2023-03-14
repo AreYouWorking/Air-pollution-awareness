@@ -182,6 +182,9 @@ class _PhotoEditorState extends State<PhotoEditor> {
           // Photo Editing area
           GestureDetector(
               behavior: HitTestBehavior.translucent,
+              onTap: () {
+                _animateHidePanel();
+              },
               onScaleStart: (details) {
                 _initPos = details.focalPoint;
                 if (_activeItem == null) return;
@@ -375,10 +378,6 @@ class _PhotoEditorState extends State<PhotoEditor> {
               ),
               child: Column(
                 children: [
-                  const Icon(
-                    Icons.horizontal_rule_rounded,
-                    size: 36,
-                  ),
                   Expanded(
                     child: ListView(
                       itemExtent: 120.0,
