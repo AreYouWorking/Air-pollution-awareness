@@ -8,6 +8,7 @@ import 'package:app/EditPhoto/aqi_widget_emoji.dart';
 import 'package:app/EditPhoto/recommendation_text1.dart';
 import 'package:app/EditPhoto/recommendation_text2.dart';
 import 'package:app/EditPhoto/templates.dart';
+import 'package:app/EditPhoto/text_widget.dart';
 import 'package:app/EditPhoto/text_widget_icon.dart';
 import 'package:app/api/aqicn/geofeed.dart';
 import 'package:app/forecast/hotspot.dart';
@@ -62,6 +63,7 @@ class _PhotoEditorState extends State<PhotoEditor> {
   static const int slideUpAnimationDurationInMs = 300;
 
   int? _aqi;
+  int _hotspot = 0;
   String? _placeName;
 
   OverlaidWidget? _activeItem;
@@ -104,6 +106,7 @@ class _PhotoEditorState extends State<PhotoEditor> {
     setState(() {
       _templates = buildTemplates(aqicn.aqi, Userposition.display_place_Chosen,
           hotspot, _editingAreaSize!);
+      _hotspot = hotspot;
       _aqi = aqicn.aqi;
       _placeName = Userposition.display_place_Chosen;
     });
@@ -393,6 +396,10 @@ class _PhotoEditorState extends State<PhotoEditor> {
                         AqiWidgetEmoji(
                             aqi: aqi,
                             fontSize: 64,
+                            defaultVariation: WidgetVariation.whiteNoBg),
+                        TextWidget(
+                            text: '$_hotspot hot spots near me',
+                            fontSize: 36,
                             defaultVariation: WidgetVariation.whiteNoBg),
                         TextWidgetIcon(
                             text: placeName,
