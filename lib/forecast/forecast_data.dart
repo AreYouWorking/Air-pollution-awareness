@@ -6,7 +6,6 @@ import 'package:app/forecast/daily.dart';
 import 'package:app/forecast/hourly.dart';
 import 'package:app/forecast/today.dart';
 import 'package:app/style.dart' as style;
-import 'package:flutter/cupertino.dart';
 
 import 'hotspot.dart';
 
@@ -54,11 +53,12 @@ class ForecastData {
     List<DailyData> result = [_fromAqi(aqicn!.aqi, now)];
     // following this scale https://aqicn.org/scale/
     if (aqicn!.forecast == null) {
-      for (var v in aqicn!.forecast!.daily.pm25) {
-        var datetime = DateTime.parse(v.day);
-        if (datetime.isAfter(now)) {
-          result.add(_fromAqi(v.avg, datetime));
-        }
+      return null;
+    }
+    for (var v in aqicn!.forecast!.daily.pm25) {
+      var datetime = DateTime.parse(v.day);
+      if (datetime.isAfter(now)) {
+        result.add(_fromAqi(v.avg, datetime));
       }
     }
     return result;
@@ -81,11 +81,15 @@ class ForecastData {
 
     List<HourlyChartData> res = [];
     var dailyData = getDailyDatas();
+
+    if (dailyData == null) {
+      return null;
+    }
+
     List factor = List.generate(
         3,
         (index) =>
-            dailyData![index].aqi /
-            openmeteo!.hourly.us_aqi_pm2_5[index * 24]!);
+            dailyData[index].aqi / openmeteo!.hourly.us_aqi_pm2_5[index * 24]!);
     for (var i = 0; i <= 72; i++) {
       if (openmeteo!.hourly.us_aqi_pm2_5[i] == null) {
         break;
