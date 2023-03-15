@@ -35,7 +35,7 @@ class _MemoryState extends State<Memory> {
         Album photo =
             _albums!.firstWhere((element) => element.name == "AirWareness");
         if (photo.count > 0) {
-          memoryWidget = AlbumPage(photo);
+          memoryWidget = AlbumPage(key: Key('$photo.count'), album: photo);
         }
       });
     }
@@ -74,13 +74,16 @@ class _MemoryState extends State<Memory> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => const Camera()),
-                );
+                ).then((_) {
+                  if (mounted) initAsync();
+                });
               },
               child: Container(
                 width: double.infinity,
                 height: 175,
                 decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(15), color: style.greyUI),
+                    borderRadius: BorderRadius.circular(15),
+                    color: style.greyUI),
                 child: const Icon(
                   Icons.camera_alt,
                   size: 50,
@@ -93,23 +96,6 @@ class _MemoryState extends State<Memory> {
               textScaleFactor: 1.3,
             ),
           ),
-//           GestureDetector(
-//               onTap: () async {
-//                 setState(() {
-//                   print("test");
-//                   print("object");
-//                   initAsync();
-//                   print(_albums?.elementAt(0));
-//                   test();
-//                 });
-//               },
-//               child: Column(children: const [
-//                 Text(
-//                   "test",
-//                   textScaleFactor: 0.7,
-//                 ),
-//               ])
-//TODO style imporve
           memoryWidget
         ],
       )),
