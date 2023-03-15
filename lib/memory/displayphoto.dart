@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:photo_gallery/photo_gallery.dart';
 
 class AlbumPage extends StatefulWidget {
-  late Album album;
+  final Album album;
 
-  AlbumPage(this.album, {super.key});
+  AlbumPage({super.key, required this.album});
 
   @override
   State<StatefulWidget> createState() => AlbumPageState();
