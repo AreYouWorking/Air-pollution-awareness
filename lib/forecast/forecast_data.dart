@@ -23,8 +23,7 @@ DailyData _fromAqi(int aqi, DateTime datetime) {
   } else if (aqi <= 300) {
     return DailyData(style.aqiColor[4], "😱", aqi, "Very Unhealthy", datetime);
   }
-  return DailyData(
-      style.aqiColor[5], "😵", aqi, "Hazardous", datetime);
+  return DailyData(style.aqiColor[5], "😵", aqi, "Hazardous", datetime);
 }
 
 class ForecastData {
@@ -40,7 +39,7 @@ class ForecastData {
     final aqicn = await getData(lat, long);
     final hotspot = await searchHotspot();
     return ForecastData(
-        created: DateTime.parse(aqicn.time.iso).toLocal(),
+        created: DateTime.parse(aqicn.time.s).toLocal(),
         openmeteo: openmetro,
         aqicn: aqicn,
         hotspot: hotspot);
@@ -54,10 +53,12 @@ class ForecastData {
     var now = DateTime.now();
     List<DailyData> result = [_fromAqi(aqicn!.aqi, now)];
     // following this scale https://aqicn.org/scale/
-    for (var v in aqicn!.forecast.daily.pm25) {
-      var datetime = DateTime.parse(v.day);
-      if (datetime.isAfter(now)) {
-        result.add(_fromAqi(v.avg, datetime));
+    if (aqicn!.forecast == null) {
+      for (var v in aqicn!.forecast!.daily.pm25) {
+        var datetime = DateTime.parse(v.day);
+        if (datetime.isAfter(now)) {
+          result.add(_fromAqi(v.avg, datetime));
+        }
       }
     }
     return result;
@@ -80,20 +81,24 @@ class ForecastData {
 
     List<HourlyChartData> res = [];
     var dailyData = getDailyDatas();
-    List factor = List.generate(3, (index) => dailyData![index].aqi / openmeteo!.hourly.us_aqi_pm2_5[index*24]!) ;
+    List factor = List.generate(
+        3,
+        (index) =>
+            dailyData![index].aqi /
+            openmeteo!.hourly.us_aqi_pm2_5[index * 24]!);
     for (var i = 0; i <= 72; i++) {
       if (openmeteo!.hourly.us_aqi_pm2_5[i] == null) {
         break;
       }
       int aqi = 0;
-      if(i <= 23){
+      if (i <= 23) {
         aqi = (openmeteo!.hourly.us_aqi_pm2_5[i]! * factor[0]).ceil();
-      }else if(i <= 47){
+      } else if (i <= 47) {
         aqi = (openmeteo!.hourly.us_aqi_pm2_5[i]! * factor[1]).ceil();
-      }else{
+      } else {
         aqi = (openmeteo!.hourly.us_aqi_pm2_5[i]! * factor[2]).ceil();
       }
-      
+
       var color = style.aqiColor[0];
       if (aqi <= 50) {
         color = style.aqiColor[0];

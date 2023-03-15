@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:app/api/aqicn/geofeed.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_test/flutter_test.dart';
 
@@ -34,6 +36,14 @@ void main() {
       final endDate = formatter.format(now.add(const Duration(days: 5)));
       final resp = await fetchAitQuality(lat, long, startDate, endDate);
       expect(resp.statusCode, 200);
+    });
+
+    test('aqicn test for multiple missing data', () async {
+      await dotenv.load();
+      const lat = "13.743885";
+      const long = "100.5701741";
+      final data = await getData(lat, long);
+      expect(data, isNotNull);
     });
 
     test('getAirQuality5day returns success response', () async {

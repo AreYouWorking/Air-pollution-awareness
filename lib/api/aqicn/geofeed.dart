@@ -25,6 +25,14 @@ Future<Data> getData(String lat, String long) async {
   return Response.fromJson(jsonDecode(resp.body)).data;
 }
 
+double toDouble(dynamic e) {
+  if (e is String) {
+    return double.parse(e);
+  } else {
+    return (e as num).toDouble();
+  }
+}
+
 @JsonSerializable()
 class Response {
   final String status;
@@ -43,11 +51,11 @@ class Data {
   final int idx;
   final List<Attr> attributions;
   final City city;
-  final String dominentpol;
+  final String? dominentpol;
   final Iaqi iaqi;
   final Time time;
-  final Forecast forecast;
-  final Debug debug;
+  final Forecast? forecast;
+  final Debug? debug;
 
   Data(this.aqi, this.idx, this.attributions, this.city, this.dominentpol,
       this.iaqi, this.time, this.forecast, this.debug);
@@ -82,8 +90,8 @@ class Attr {
 class City {
   final List<double> geo;
   final String name;
-  final String url;
-  final String location;
+  final String? url;
+  final String? location;
 
   City(this.geo, this.name, this.url, this.location);
   factory City.fromJson(Map<String, dynamic> json) => _$CityFromJson(json);
@@ -126,7 +134,7 @@ class Time {
   final String s;
   final String tz;
   final int v;
-  final String iso;
+  final String? iso;
 
   Time(this.s, this.tz, this.v, this.iso);
   factory Time.fromJson(Map<String, dynamic> json) => _$TimeFromJson(json);

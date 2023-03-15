@@ -23,11 +23,15 @@ Data _$DataFromJson(Map<String, dynamic> json) => Data(
           .map((e) => Attr.fromJson(e as Map<String, dynamic>))
           .toList(),
       City.fromJson(json['city'] as Map<String, dynamic>),
-      json['dominentpol'] as String,
+      json['dominentpol'] as String?,
       Iaqi.fromJson(json['iaqi'] as Map<String, dynamic>),
       Time.fromJson(json['time'] as Map<String, dynamic>),
-      Forecast.fromJson(json['forecast'] as Map<String, dynamic>),
-      Debug.fromJson(json['debug'] as Map<String, dynamic>),
+      json['forecast'] == null
+          ? null
+          : Forecast.fromJson(json['forecast'] as Map<String, dynamic>),
+      json['debug'] == null
+          ? null
+          : Debug.fromJson(json['debug'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$DataToJson(Data instance) => <String, dynamic>{
@@ -61,20 +65,11 @@ Map<String, dynamic> _$AttrToJson(Attr instance) => <String, dynamic>{
       'logo': instance.logo,
     };
 
-// this could be deleted by json_serializable
-double toDouble(dynamic e) {
-  if (e is String) {
-    return double.parse(e);
-  } else {
-    return (e as num).toDouble();
-  }
-}
-
 City _$CityFromJson(Map<String, dynamic> json) => City(
       (json['geo'] as List<dynamic>).map((e) => toDouble(e)).toList(),
       json['name'] as String,
-      json['url'] as String,
-      json['location'] as String,
+      json['url'] as String?,
+      json['location'] as String?,
     );
 
 Map<String, dynamic> _$CityToJson(City instance) => <String, dynamic>{
@@ -146,7 +141,7 @@ Time _$TimeFromJson(Map<String, dynamic> json) => Time(
       json['s'] as String,
       json['tz'] as String,
       json['v'] as int,
-      json['iso'] as String,
+      json['iso'] as String?,
     );
 
 Map<String, dynamic> _$TimeToJson(Time instance) => <String, dynamic>{
