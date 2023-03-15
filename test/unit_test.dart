@@ -23,6 +23,19 @@ void main() {
       expect(resp.statusCode, 200);
     });
 
+    test('fetchAirQuality (negative lat, long) returns success response',
+        () async {
+      // CMU's location
+      const lat = "-18.80465";
+      const long = "-98.9550117";
+      final now = DateTime.now();
+      final formatter = DateFormat("yyyy-MM-dd");
+      final startDate = formatter.format(now);
+      final endDate = formatter.format(now.add(const Duration(days: 5)));
+      final resp = await fetchAitQuality(lat, long, startDate, endDate);
+      expect(resp.statusCode, 200);
+    });
+
     test('getAirQuality5day returns success response', () async {
       // CMU's location
       const lat = "18.80465";

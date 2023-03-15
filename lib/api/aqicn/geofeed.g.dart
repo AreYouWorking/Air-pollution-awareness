@@ -61,8 +61,17 @@ Map<String, dynamic> _$AttrToJson(Attr instance) => <String, dynamic>{
       'logo': instance.logo,
     };
 
+// this could be deleted by json_serializable
+double toDouble(dynamic e) {
+  if (e is String) {
+    return double.parse(e);
+  } else {
+    return (e as num).toDouble();
+  }
+}
+
 City _$CityFromJson(Map<String, dynamic> json) => City(
-      (json['geo'] as List<dynamic>).map((e) => (e as num).toDouble()).toList(),
+      (json['geo'] as List<dynamic>).map((e) => toDouble(e)).toList(),
       json['name'] as String,
       json['url'] as String,
       json['location'] as String,
