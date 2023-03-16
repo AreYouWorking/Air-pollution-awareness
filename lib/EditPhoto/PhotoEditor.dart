@@ -576,12 +576,6 @@ class _PhotoEditorState extends State<PhotoEditor> {
               });
             },
             onPointerUp: (details) {
-              _inAction = false;
-              setState(() {
-                _isTemplateChangeAllowed = true;
-                _hideMenu = false;
-                _hideDelete = true;
-              });
               print(details);
               print(details.position.dx);
               print(details.position.dy);
@@ -589,7 +583,14 @@ class _PhotoEditorState extends State<PhotoEditor> {
                 _activeItem?.position = Offset(200, 800);
                 Vibration.vibrate(duration: 100);
               }
-              _activeItem = null;
+              setState(() {
+                _isTemplateChangeAllowed = true;
+                _hideMenu = false;
+                _hideDelete = true;
+                _nearDelete = false;
+                _inAction = false;
+                _activeItem = null;
+              });
             },
             child: e.widget,
           ),
