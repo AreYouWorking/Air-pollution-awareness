@@ -99,6 +99,10 @@ class _SelectlocationState extends State<Selectlocation> {
   }
 
   void _refreshUserLocWidget() {
+    if (Userposition.latitudeGPS == '' || Userposition.longitudeGPS == '') {
+      return;
+    }
+
     setState(() {
       userGPSLocWidget = locationText(Suggestlocation(
           name: Userposition.display_place_GPS,
