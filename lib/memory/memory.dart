@@ -1,8 +1,8 @@
 import 'dart:io';
 
-import 'package:app/Camera.dart';
+import 'package:app/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:photo_gallery/photo_gallery.dart';
+// import 'package:photo_gallery/photo_gallery.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:app/style.dart' as style;
 import 'package:app/memory/displayphoto.dart';
@@ -17,7 +17,7 @@ class Memory extends StatefulWidget {
 class _MemoryState extends State<Memory> {
   Widget memoryWidget = const SizedBox.shrink();
 
-  List<Album>? _albums;
+  // List<Album>? _albums;
 
   @override
   void initState() {
@@ -26,20 +26,20 @@ class _MemoryState extends State<Memory> {
   }
 
   Future<void> initAsync() async {
-    if (await _promptPermissionSetting()) {
-      List<Album> albums =
-          await PhotoGallery.listAlbums(mediumType: MediumType.image);
-      setState(() {
-        print("Album setState");
-        _albums = albums;
-        Album photo =
-            _albums!.firstWhere((element) => element.name == "AirWareness");
-        if (photo.count > 0) {
-          memoryWidget = AlbumPage(key: Key('$photo.count'), album: photo);
-        }
-      });
-    }
-    setState(() {});
+    // if (await _promptPermissionSetting()) {
+    //   List<Album> albums =
+    //       await PhotoGallery.listAlbums(mediumType: MediumType.image);
+    //   setState(() {
+    //     print("Album setState");
+    //     _albums = albums;
+    //     Album photo =
+    //         _albums!.firstWhere((element) => element.name == "AirWareness");
+    //     if (photo.count > 0) {
+    //       memoryWidget = AlbumPage(key: Key('$photo.count'), album: photo);
+    //     }
+    //   });
+    // }
+    // setState(() {});
   }
 
   Future<bool> _promptPermissionSetting() async {

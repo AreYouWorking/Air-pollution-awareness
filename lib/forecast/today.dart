@@ -17,7 +17,6 @@ class TodayData {
       this.temperature, this.wind);
 }
 
-
 class TodayWidget extends StatefulWidget {
   final ForecastData data;
 
@@ -39,7 +38,7 @@ class _TodayWidgetState extends State<TodayWidget> {
           decoration: BoxDecoration(
               color: style.greyUI, borderRadius: BorderRadius.circular(15.0)),
           child: Center(
-              child: LoadingAnimationWidget.prograssiveDots(
+              child: LoadingAnimationWidget.progressiveDots(
                   color: Colors.white, size: 50)));
     }
 
@@ -75,16 +74,15 @@ class _TodayWidgetState extends State<TodayWidget> {
                   padding: const EdgeInsets.only(top: 15.0),
                   child: Column(
                     children: [
-                      Text(
-                        "AQI ${todayData.aqi}",
-                        textScaleFactor: 2.0,
-                        style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)
-                      ),
-                      Text(
-                        todayData.text,
-                        textScaleFactor: 1.5,
-                        style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)
-                      )
+                      Text("AQI ${todayData.aqi}",
+                          textScaleFactor: 2.0,
+                          style: const TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold)),
+                      Text(todayData.text,
+                          textScaleFactor: 1.5,
+                          style: const TextStyle(
+                              color: Colors.black, fontWeight: FontWeight.bold))
                     ],
                   ),
                 ),

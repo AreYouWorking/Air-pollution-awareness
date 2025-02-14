@@ -2,7 +2,6 @@ import 'package:app/forecast/forecast_data.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
-import 'package:syncfusion_flutter_charts/charts.dart';
 
 class HourlyChartData {
   final DateTime x;
@@ -29,7 +28,7 @@ class _HourlyWidgetState extends State<HourlyWidget> {
     _hourlyData = widget.data.getHourlyData();
     if (_hourlyData == null) {
       return Center(
-          child: LoadingAnimationWidget.prograssiveDots(
+          child: LoadingAnimationWidget.progressiveDots(
               color: Colors.white, size: 50));
     }
 
@@ -54,19 +53,19 @@ class _HourlyWidgetState extends State<HourlyWidget> {
             ],
           ),
         ),
-        Expanded(
-          child: SfCartesianChart(
-            primaryXAxis: DateTimeAxis(dateFormat: DateFormat.H(), interval: 1),
-            primaryYAxis: NumericAxis(minimum: 0),
-            series: <ChartSeries<HourlyChartData, DateTime>>[
-              ColumnSeries<HourlyChartData, DateTime>(
-                  dataSource: data[hourlyCurrIdx],
-                  pointColorMapper: (HourlyChartData data, _) => data.color,
-                  xValueMapper: (HourlyChartData data, _) => data.x,
-                  yValueMapper: (HourlyChartData data, _) => data.y),
-            ],
-          ),
-        ),
+        // Expanded(
+        //   child: SfCartesianChart(
+        //     primaryXAxis: DateTimeAxis(dateFormat: DateFormat.H(), interval: 1),
+        //     primaryYAxis: NumericAxis(minimum: 0),
+        //     series: <ChartSeries<HourlyChartData, DateTime>>[
+        //       ColumnSeries<HourlyChartData, DateTime>(
+        //           dataSource: data[hourlyCurrIdx],
+        //           pointColorMapper: (HourlyChartData data, _) => data.color,
+        //           xValueMapper: (HourlyChartData data, _) => data.x,
+        //           yValueMapper: (HourlyChartData data, _) => data.y),
+        //     ],
+        //   ),
+        // ),
       ],
     );
   }
