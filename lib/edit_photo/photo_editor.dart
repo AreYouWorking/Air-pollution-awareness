@@ -16,9 +16,9 @@ import 'package:app/location/selectlocation.dart';
 import 'package:app/location/userposition.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:gallery_saver_plus/gallery_saver.dart';
 import 'package:path_provider/path_provider.dart';
 
-// import 'package:gallery_saver/gallery_saver.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:palette_generator/palette_generator.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -114,7 +114,7 @@ class _PhotoEditorState extends State<PhotoEditor> {
     if (mounted) Navigator.pop(context);
   }
 
-  Future<File> _savePicture() async {
+  Future<File?> _savePicture() async {
     Fluttertoast.showToast(
         msg: "Saved to Gallery",
         toastLength: Toast.LENGTH_SHORT,
@@ -128,21 +128,54 @@ class _PhotoEditorState extends State<PhotoEditor> {
     });
     String timestamp() => DateTime.now().millisecondsSinceEpoch.toString();
 
-    RenderRepaintBoundary boundary =
+    final RenderRepaintBoundary boundary =
         _globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
-    ui.Image image = await boundary.toImage(pixelRatio: 3.0);
+    final ui.Image originalImage = await boundary.toImage(pixelRatio: 3.0);
+    final ByteData? byteData =
+        await originalImage.toByteData(format: ui.ImageByteFormat.png);
+    final Uint8List? pngBytes = byteData?.buffer.asUint8List();
+
+    if (pngBytes == null) {
+      return null;
+    }
+
+    // Create new image with correct orientation
+    final ui.PictureRecorder recorder = ui.PictureRecorder();
+    final ui.Canvas canvas = ui.Canvas(recorder);
+
+    final double height = originalImage.height.toDouble();
+
+    // Apply transformation (flip vertically)
+    canvas.translate(0, height);
+    canvas.scale(1, -1);
+
+    final paint = ui.Paint();
+    canvas.drawImage(originalImage, ui.Offset.zero, paint);
+
+    final ui.Image flippedImage = await recorder
+        .endRecording()
+        .toImage(originalImage.width, originalImage.height);
+
+    // Convert flipped image to ByteData
+    final ByteData? flippedByteData =
+        await flippedImage.toByteData(format: ui.ImageByteFormat.png);
+    final Uint8List? flippedPngBytes = flippedByteData?.buffer.asUint8List();
+
+    if (flippedPngBytes == null) {
+      return null;
+    }
+
+    // Save to file
     final directory = (await getApplicationDocumentsDirectory()).path;
-    // print(directory); // directory = /data/user/0/com.example.app/app_flutter
-    ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-    Uint8List? pngBytes = byteData?.buffer.asUint8List();
-    File imgFile = File('$directory/${timestamp()}.png');
-    imgFile.writeAsBytes(pngBytes!);
-    // print(imgFile.path);
+    final File imgFile = File('$directory/${timestamp()}.png');
+    await imgFile.writeAsBytes(flippedPngBytes);
+
     await Future.delayed(const Duration(
         milliseconds: 500)); // waiting for image fully writeAsBytes
-    // await GallerySaver.saveImage(imgFile.path,
-    //     toDcim: true, albumName: 'AirWareness');
+    await GallerySaver.saveImage(imgFile.path,
+        toDcim: true, albumName: 'AirWareness');
     setState(() {
+      if (!mounted) return;
       _isSaving = false;
     });
 
@@ -150,7 +183,8 @@ class _PhotoEditorState extends State<PhotoEditor> {
   }
 
   void _sharePicture() async {
-    File imgFile = await _savePicture();
+    final File? imgFile = await _savePicture();
+    if (imgFile == null) return;
     await Share.shareXFiles([XFile(imgFile.path)]);
     await imgFile.delete();
   }
@@ -168,7 +202,7 @@ class _PhotoEditorState extends State<PhotoEditor> {
     super.dispose();
   }
 
-  // https://www.youtube.com/watch?v=PTyvarfJiW8
+// https://www.youtube.com/watch?v=PTyvarfJiW8
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
@@ -371,7 +405,7 @@ class _PhotoEditorState extends State<PhotoEditor> {
     );
   }
 
-  // TODO: Refactor this to separate file
+// TODO: Refactor this to separate file
   Widget _getAddWidgetMenu(int aqi, String placeName) {
     return DraggableScrollableSheet(
         initialChildSize: minSlideUpPanelSize,

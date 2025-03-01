@@ -1,21 +1,20 @@
 import 'package:flutter/material.dart';
 
-// import 'package:photo_gallery/photo_gallery.dart';
+import 'package:photo_gallery/photo_gallery.dart';
 
 class AlbumPage extends StatefulWidget {
-  // final Album album;
+  final Album album;
 
-  AlbumPage({super.key,
-    // required this.album
+  const AlbumPage({super.key,
+    required this.album
   });
 
   @override
   State<StatefulWidget> createState() => AlbumPageState();
 }
 
-// TODO core
 class AlbumPageState extends State<AlbumPage> {
-  // List<Medium>? _media;
+  List<Medium>? _media;
 
   @override
   void initState() {
@@ -24,10 +23,11 @@ class AlbumPageState extends State<AlbumPage> {
   }
 
   void initAsync() async {
-    // MediaPage? mediaPage = await widget.album.listMedia();
-    // setState(() {
-    //   _media = mediaPage.items;
-    // });
+    MediaPage? mediaPage = await widget.album.listMedia();
+    print(mediaPage.items);
+    setState(() {
+      _media = mediaPage.items;
+    });
   }
 
   @override
@@ -40,39 +40,39 @@ class AlbumPageState extends State<AlbumPage> {
               mainAxisSpacing: 8.0,
               crossAxisSpacing: 8.0,
               children: <Widget>[
-                // ...?_media?.map(
-                //   (medium) => GestureDetector(
-                //     onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                //         builder: (context) => ViewerPage(medium))),
-                //     child: Container(
-                //       color: Colors.grey[300],
-                //       // child: Image(
-                //       //   fit: BoxFit.cover,
-                //       //   // placeholder: MemoryImage(kTransparentImage),
-                //       //   image: ThumbnailProvider(
-                //       //     mediumId: medium.id,
-                //       //     mediumType: medium.mediumType,
-                //       //     highQuality: true,
-                //       //   ),
-                //       // ),
-                //     ),
-                //   ),
-                // ),
+                ...?_media?.map(
+                  (medium) => GestureDetector(
+                    onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                        builder: (context) => ViewerPage(medium))),
+                    child: Container(
+                      color: Colors.grey[300],
+                      child: Image(
+                        fit: BoxFit.cover,
+                        // placeholder: MemoryImage(kTransparentImage),
+                        image: ThumbnailProvider(
+                          mediumId: medium.id,
+                          mediumType: medium.mediumType,
+                          highQuality: true,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               ],
             )));
   }
 }
 
 class ViewerPage extends StatelessWidget {
-  // final Medium medium;
+  final Medium medium;
 
   const ViewerPage(
-      // this.medium,
+      this.medium,
       {super.key});
 
   @override
   Widget build(BuildContext context) {
-    // DateTime? date = medium.creationDate ?? medium.modifiedDate;
+    DateTime? date = medium.creationDate ?? medium.modifiedDate;
     return MaterialApp(
       home: Scaffold(
         backgroundColor: Colors.black,
@@ -82,16 +82,16 @@ class ViewerPage extends StatelessWidget {
             onPressed: () => Navigator.of(context).pop(),
             icon: const Icon(Icons.arrow_back_ios),
           ),
-          // title: date != null ? Text(date.toLocal().toString()) : null,
+          title: date != null ? Text(date.toLocal().toString()) : null,
         ),
         body: Container(
           alignment: Alignment.center,
-          // child: medium.mediumType == MediumType.image
-          //     ? Image(
-          //         fit: BoxFit.cover,
-          //         image: PhotoProvider(mediumId: medium.id),
-          //       )
-          //     : null,
+          child: medium.mediumType == MediumType.image
+              ? Image(
+                  fit: BoxFit.cover,
+                  image: PhotoProvider(mediumId: medium.id),
+                )
+              : null,
         ),
       ),
     );

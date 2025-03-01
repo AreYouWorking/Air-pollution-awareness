@@ -51,13 +51,18 @@ dependencies:
   permission_handler: ^11.3.1
   geocoding: ^3.0.0
   image: ^4.0.15
-#  photo_gallery: ^2.2.1
+  photo_gallery:
+    git:
+      url: https://github.com/PutawanDE/photo_gallery.git
+      ref: master
   loading_animation_widget: ^1.2.0+4
   share_plus: 10.1.4
   palette_generator: ^0.3.3+2
   flutter_svg: ^2.0.2
   fluttertoast: ^8.2.1
   vibration: ^3.1.2
+  device_info_plus: ^11.3.2
+  gallery_saver_plus: ^3.2.4
 
 dev_dependencies:
   integration_test:

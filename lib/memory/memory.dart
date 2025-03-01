@@ -1,8 +1,9 @@
 import 'dart:io';
 
 import 'package:app/camera.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
-// import 'package:photo_gallery/photo_gallery.dart';
+import 'package:photo_gallery/photo_gallery.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:app/style.dart' as style;
 import 'package:app/memory/displayphoto.dart';
@@ -17,7 +18,7 @@ class Memory extends StatefulWidget {
 class _MemoryState extends State<Memory> {
   Widget memoryWidget = const SizedBox.shrink();
 
-  // List<Album>? _albums;
+  List<Album>? _albums;
 
   @override
   void initState() {
@@ -26,37 +27,45 @@ class _MemoryState extends State<Memory> {
   }
 
   Future<void> initAsync() async {
-    // if (await _promptPermissionSetting()) {
-    //   List<Album> albums =
-    //       await PhotoGallery.listAlbums(mediumType: MediumType.image);
-    //   setState(() {
-    //     print("Album setState");
-    //     _albums = albums;
-    //     Album photo =
-    //         _albums!.firstWhere((element) => element.name == "AirWareness");
-    //     if (photo.count > 0) {
-    //       memoryWidget = AlbumPage(key: Key('$photo.count'), album: photo);
-    //     }
-    //   });
-    // }
-    // setState(() {});
+    if (await _promptPermissionSetting()) {
+      List<Album> albums =
+          await PhotoGallery.listAlbums(mediumType: MediumType.image);
+      setState(() {
+        print("Album setState");
+        _albums = albums;
+        Album photo =
+            _albums!.firstWhere((element) => element.name == "AirWareness");
+        if (photo.count > 0) {
+          memoryWidget = AlbumPage(key: Key('$photo.count'), album: photo);
+        }
+      });
+    }
+    setState(() {});
   }
 
   Future<bool> _promptPermissionSetting() async {
     if (Platform.isIOS) {
       // Request storage and photo permissions on iOS
-      var storageStatus = await Permission.storage.request();
-      var photoStatus = await Permission.photos.request();
-      if (storageStatus.isGranted && photoStatus.isGranted) {
-        return true;
-      }
+      Map<Permission, PermissionStatus> statuses = await [
+        Permission.storage,
+        Permission.photos,
+      ].request();
+
+      return statuses.entries.every((status) => status.value.isGranted);
     } else if (Platform.isAndroid) {
-      // Request storage permission on Android
-      var storageStatus = await Permission.storage.request();
-      if (storageStatus.isGranted) {
-        return true;
+      final DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+      final AndroidDeviceInfo info = await deviceInfo.androidInfo;
+
+      final PermissionStatus status;
+      if (info.version.sdkInt >= 33) {
+        status = await Permission.photos.request();
+      } else {
+        status = await Permission.storage.request();
       }
+
+      return status.isGranted;
     }
+
     return false;
   }
 
