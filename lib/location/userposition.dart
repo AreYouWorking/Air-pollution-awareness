@@ -1,22 +1,22 @@
-class Userposition {
-  static String display_place_GPS = '';
+class UserPosition {
+  static String displayPlaceGPS = '';
   static String latitudeGPS = '';
   static String longitudeGPS = '';
 
-  static String display_place_Chosen = '';
+  static String displayPlaceChosen = '';
   static String latitudeChosen = '';
   static String longitudeChosen = '';
 
   // Location Bias  proximity for find place near user
-  static String proximity_latitude = '';
-  static String proximity_longitude = '';
+  static String proximityLatitude = '';
+  static String proximityLongitude = '';
 
   static void setCurrentLocation(String lat, String lon, String placeName) {
     latitudeGPS = lat;
     longitudeGPS = lon;
-    proximity_latitude = lat;
-    proximity_longitude = lon;
-    display_place_GPS = placeName;
+    proximityLatitude = lat;
+    proximityLongitude = lon;
+    displayPlaceGPS = placeName;
 
     if (latitudeChosen == '') setChosenLocation(lat, lon, placeName);
   }
@@ -24,6 +24,6 @@ class Userposition {
   static void setChosenLocation(String lat, String lon, String placeName) {
     latitudeChosen = lat;
     longitudeChosen = lon;
-    display_place_Chosen = placeName;
+    displayPlaceChosen = placeName;
   }
 }

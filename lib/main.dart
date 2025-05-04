@@ -60,7 +60,7 @@ class _MainScreen extends State<MainScreen> {
     });
 
     var newForecastData = await ForecastData.init(
-        Userposition.latitudeChosen, Userposition.longitudeChosen);
+        UserPosition.latitudeChosen, UserPosition.longitudeChosen);
     setState(() {
       _forecastData = newForecastData;
     });
@@ -120,9 +120,9 @@ class _MainScreen extends State<MainScreen> {
     if (chosenLocation != null) {
       setState(() {
         print("data");
-        Userposition.setChosenLocation(chosenLocation.lat.toString(),
+        UserPosition.setChosenLocation(chosenLocation.lat.toString(),
             chosenLocation.lon.toString(), chosenLocation.name);
-        print(Userposition.display_place_Chosen);
+        print(UserPosition.displayPlaceChosen);
         _forecastUpdate();
       });
     }
@@ -159,7 +159,7 @@ class _MainScreen extends State<MainScreen> {
                         const Icon(Icons.near_me_outlined),
                         Flexible(
                             child: Text(
-                          Userposition.display_place_Chosen,
+                          UserPosition.displayPlaceChosen,
                           style: const TextStyle(
                             fontSize: 14,
                           ),

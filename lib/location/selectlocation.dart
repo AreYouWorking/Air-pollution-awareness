@@ -91,7 +91,7 @@ class _SelectlocationState extends State<Selectlocation> {
     });
     textController.clear();
     await fetchAndSetUserLocation();
-    print(Userposition.display_place_GPS);
+    print(UserPosition.displayPlaceGPS);
     _refreshUserLocWidget();
     setState(() {
       _isFetchingLocation = false;
@@ -99,16 +99,16 @@ class _SelectlocationState extends State<Selectlocation> {
   }
 
   void _refreshUserLocWidget() {
-    if (Userposition.latitudeGPS == '' || Userposition.longitudeGPS == '') {
+    if (UserPosition.latitudeGPS == '' || UserPosition.longitudeGPS == '') {
       return;
     }
 
     setState(() {
       userGPSLocWidget = locationText(Suggestlocation(
-          name: Userposition.display_place_GPS,
+          name: UserPosition.displayPlaceGPS,
           city: null,
-          lat: double.parse(Userposition.latitudeGPS),
-          lon: double.parse(Userposition.longitudeGPS),
+          lat: double.parse(UserPosition.latitudeGPS),
+          lon: double.parse(UserPosition.longitudeGPS),
           distance: null));
     });
   }
@@ -121,7 +121,7 @@ class _SelectlocationState extends State<Selectlocation> {
     const base = "https://api.geoapify.com/v1/geocode/autocomplete?";
     String filter = "filter=countrycode:th";
     String bias =
-        "bias=proximity:${Userposition.proximity_longitude},${Userposition.proximity_latitude}|countrycode:th";
+        "bias=proximity:${UserPosition.proximityLongitude},${UserPosition.proximityLatitude}|countrycode:th";
     String format = "format=json";
     String params = "text=$text&$filter&$bias&$format&apiKey=$token";
     print(base + params);

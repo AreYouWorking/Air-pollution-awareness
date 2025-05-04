@@ -101,15 +101,15 @@ class _PhotoEditorState extends State<PhotoEditor> {
   void _fetchData() async {
     showLoaderDialog(context);
     Data aqicn = await getData(
-        Userposition.latitudeChosen, Userposition.longitudeChosen);
+        UserPosition.latitudeChosen, UserPosition.longitudeChosen);
 
     int hotspot = await searchHotspot();
     setState(() {
-      _templates = buildTemplates(aqicn.aqi, Userposition.display_place_Chosen,
+      _templates = buildTemplates(aqicn.aqi, UserPosition.displayPlaceChosen,
           hotspot, _editingAreaSize!);
       _hotspot = hotspot;
       _aqi = aqicn.aqi;
-      _placeName = Userposition.display_place_Chosen;
+      _placeName = UserPosition.displayPlaceChosen;
     });
     if (mounted) Navigator.pop(context);
   }
@@ -500,7 +500,7 @@ class _PhotoEditorState extends State<PhotoEditor> {
                           );
                           if (chosenLocation != null) {
                             setState(() {
-                              Userposition.setChosenLocation(
+                              UserPosition.setChosenLocation(
                                   chosenLocation.lat.toString(),
                                   chosenLocation.lon.toString(),
                                   chosenLocation.name);
