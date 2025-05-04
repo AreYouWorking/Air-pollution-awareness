@@ -10,21 +10,16 @@ part 'airquality.g.dart';
 const base = "https://air-quality-api.open-meteo.com/v1/air-quality";
 
 Future<http.Response> fetchAitQuality(
-    String lat, String long, String startDate, String endDate) async {
+    String lat, String long) async {
   String params =
-      "?latitude=$lat&longitude=$long&hourly=us_aqi_pm2_5&timezone=Asia%2FBangkok&start_date=$startDate&end_date=$endDate";
+      "?latitude=$lat&longitude=$long&hourly=us_aqi_pm2_5&timezone=Asia%2FBangkok&forecast_days=5";
 
   print(base + params);
   return http.get(Uri.parse(base + params));
 }
 
 Future<Airquality> getAirQuality5day(String lat, String long) async {
-  final now = DateTime.now();
-  final formatter = DateFormat("yyyy-MM-dd");
-  final startDate = formatter.format(now);
-  final endDate = formatter.format(now.add(const Duration(days: 5)));
-
-  http.Response resp = await fetchAitQuality(lat, long, startDate, endDate);
+  http.Response resp = await fetchAitQuality(lat, long);
 
   return Airquality.fromJson(jsonDecode(resp.body));
 }
