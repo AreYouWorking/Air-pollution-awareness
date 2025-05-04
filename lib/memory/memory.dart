@@ -1,8 +1,11 @@
 import 'dart:io';
 
 import 'package:app/camera.dart';
+import 'package:app/utils.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:photo_gallery/photo_gallery.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:app/style.dart' as style;
@@ -69,6 +72,34 @@ class _MemoryState extends State<Memory> {
     return false;
   }
 
+  Future<void> _openCamera() async {
+    final LocationPermission permission = await getLocationPermission();
+
+    if (permission == LocationPermission.denied ||
+        permission == LocationPermission.deniedForever) {
+      Fluttertoast.showToast(
+          msg: "Location Permission is required to use this app. Please enable it in device settings.",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 5,
+          backgroundColor: Colors.black,
+          textColor: Colors.white,
+          fontSize: 16.0);
+      return;
+    }
+
+    if (!mounted) {
+      return;
+    }
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const Camera()),
+    );
+    if (mounted) {
+      initAsync();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -78,14 +109,8 @@ class _MemoryState extends State<Memory> {
         children: [
           InkWell(
               borderRadius: BorderRadius.circular(20),
-              onTap: () async {
-                if (!mounted) return;
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const Camera()),
-                ).then((_) {
-                  if (mounted) initAsync();
-                });
+              onTap: () {
+                _openCamera();
               },
               child: Container(
                 width: double.infinity,

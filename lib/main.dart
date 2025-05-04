@@ -8,6 +8,8 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:geolocator/geolocator.dart';
 
 import '/location/selectlocation.dart';
 import 'location/userposition.dart';
@@ -83,6 +85,43 @@ class _MainScreen extends State<MainScreen> {
     _initData().whenComplete(() => null);
   }
 
+  Future<void> handleLocationSearchBtnPress() async {
+    final LocationPermission permission = await getLocationPermission();
+    if (permission == LocationPermission.denied ||
+        permission == LocationPermission.deniedForever) {
+      Fluttertoast.showToast(
+          msg:
+              "Location Permission is required to use this app. Please enable it in device settings.",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 5,
+          backgroundColor: Colors.black,
+          textColor: Colors.white,
+          fontSize: 16.0);
+      return;
+    }
+
+    if (!mounted) {
+      return;
+    }
+
+    final chosenLocation = await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const Selectlocation(predefinedLocation: []),
+        ));
+    print(chosenLocation);
+    if (chosenLocation != null) {
+      setState(() {
+        print("data");
+        Userposition.setChosenLocation(chosenLocation.lat.toString(),
+            chosenLocation.lon.toString(), chosenLocation.name);
+        print(Userposition.display_place_Chosen);
+        _forecastUpdate();
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -104,26 +143,7 @@ class _MainScreen extends State<MainScreen> {
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: GestureDetector(
-                    onTap: () async {
-                      final chosenLocation = await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                const Selectlocation(predefinedLocation: []),
-                          ));
-                      print(chosenLocation);
-                      if (chosenLocation != null) {
-                        setState(() {
-                          print("data");
-                          Userposition.setChosenLocation(
-                              chosenLocation.lat.toString(),
-                              chosenLocation.lon.toString(),
-                              chosenLocation.name);
-                          print(Userposition.display_place_Chosen);
-                          _forecastUpdate();
-                        });
-                      }
-                    },
+                    onTap: handleLocationSearchBtnPress,
                     child: Row(
                       mainAxisSize: MainAxisSize.max,
                       mainAxisAlignment: MainAxisAlignment.end,
