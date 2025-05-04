@@ -10,7 +10,7 @@ Airquality _$AirqualityFromJson(Map<String, dynamic> json) => Airquality(
       (json['latitude'] as num).toDouble(),
       (json['longitude'] as num).toDouble(),
       (json['generationtime_ms'] as num).toDouble(),
-      json['utc_offset_seconds'] as int,
+      (json['utc_offset_seconds'] as num).toInt(),
       json['timezone'] as String,
       json['timezone_abbreviation'] as String,
       HourlyUnits.fromJson(json['hourly_units'] as Map<String, dynamic>),
@@ -42,7 +42,9 @@ Map<String, dynamic> _$HourlyUnitsToJson(HourlyUnits instance) =>
 
 Hourly _$HourlyFromJson(Map<String, dynamic> json) => Hourly(
       (json['time'] as List<dynamic>).map((e) => e as String).toList(),
-      (json['us_aqi_pm2_5'] as List<dynamic>).map((e) => e as int?).toList(),
+      (json['us_aqi_pm2_5'] as List<dynamic>)
+          .map((e) => (e as num?)?.toInt())
+          .toList(),
     );
 
 Map<String, dynamic> _$HourlyToJson(Hourly instance) => <String, dynamic>{
