@@ -127,7 +127,9 @@ class _MemoryState extends State<Memory> {
             padding: EdgeInsets.only(top: 20.0),
             child: Text(
               '- Memory -',
-              textScaleFactor: 1.3,
+              style: TextStyle(
+                fontSize: 20,
+              ),
             ),
           ),
           memoryWidget

@@ -1,7 +1,6 @@
 import 'package:app/edit_photo/templates.dart';
 import 'package:app/edit_photo/text_widget.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class AqiWidget extends StatelessWidget {

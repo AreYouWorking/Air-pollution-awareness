@@ -85,6 +85,12 @@ class _MainScreen extends State<MainScreen> {
     _initData().whenComplete(() => null);
   }
 
+  @override
+  void dispose() {
+    _everyHour.cancel();
+    super.dispose();
+  }
+
   Future<void> handleLocationSearchBtnPress() async {
     final LocationPermission permission = await getLocationPermission();
     if (permission == LocationPermission.denied ||
@@ -135,7 +141,9 @@ class _MainScreen extends State<MainScreen> {
           children: [
             const Text(
               'AirWareness',
-              textScaleFactor: 1.2,
+              style: TextStyle(
+                fontSize: 28,
+              ),
             ),
 
             //make it clikable to set location
@@ -152,7 +160,9 @@ class _MainScreen extends State<MainScreen> {
                         Flexible(
                             child: Text(
                           Userposition.display_place_Chosen,
-                          textScaleFactor: 0.7,
+                          style: const TextStyle(
+                            fontSize: 14,
+                          ),
                           overflow: TextOverflow.ellipsis,
                           maxLines: 1,
                         ))

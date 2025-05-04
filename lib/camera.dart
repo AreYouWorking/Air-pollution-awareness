@@ -44,7 +44,6 @@ class _CameraState extends State<Camera> with WidgetsBindingObserver {
   bool _isRearCameraSelected = true;
 
   final ImagePicker _picker = ImagePicker();
-  dynamic _pickImageError;
 
   void onNewCameraSelected(CameraDescription cameraDescription) async {
     final CameraController? oldController = controller;
@@ -87,9 +86,11 @@ class _CameraState extends State<Camera> with WidgetsBindingObserver {
           .getMinZoomLevel()
           .then((value) => _minAvailableZoom = value);
 
-      setState(() {
-        _currentFlashMode = controller!.value.flashMode;
-      });
+      if (mounted) {
+        setState(() {
+          _currentFlashMode = controller!.value.flashMode;
+        });
+      }
     } on CameraException catch (e) {
       switch (e.code) {
         case 'CameraAccessDenied':
@@ -244,9 +245,7 @@ class _CameraState extends State<Camera> with WidgetsBindingObserver {
         );
       }
     } catch (e) {
-      setState(() {
-        _pickImageError = e;
-      });
+      print(e);
     }
 
     // TODO: Get geolocation from EXIF
@@ -481,8 +480,7 @@ showLoaderDialog(BuildContext context) {
     barrierDismissible: false,
     context: context,
     builder: (BuildContext context) {
-      //prevent Back button press
-      return WillPopScope(onWillPop: () async => false, child: alert);
+      return PopScope(child: alert);
     },
   );
 }

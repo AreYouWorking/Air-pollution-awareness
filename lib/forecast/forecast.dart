@@ -56,7 +56,9 @@ class _ForecastState extends State<Forecast> {
         children: [
           Text(
             text,
-            textScaleFactor: 1.3,
+            style: const TextStyle(
+              fontSize: 18,
+            )
           ),
           Expanded(
             child: Container(

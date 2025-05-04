@@ -68,7 +68,9 @@ class _DailyWidgetState extends State<DailyWidget> {
                   children: [
                     Text(
                       data.emoji,
-                      textScaleFactor: 1.4,
+                      style: const TextStyle(
+                        fontSize: 20,
+                      ),
                     ),
                     const SizedBox(
                       height: 5,

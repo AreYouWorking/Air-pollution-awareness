@@ -369,7 +369,7 @@ class _PhotoEditorState extends State<PhotoEditor> {
       barrierDismissible: false,
       context: context,
       builder: (BuildContext context) {
-        return WillPopScope(onWillPop: () async => true, child: alert);
+        return PopScope(child: alert);
       },
     );
   }
