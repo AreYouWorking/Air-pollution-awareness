@@ -130,48 +130,15 @@ class _PhotoEditorState extends State<PhotoEditor> {
 
     final RenderRepaintBoundary boundary =
         _globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
-    final ui.Image originalImage = await boundary.toImage(pixelRatio: 3.0);
-    final ByteData? byteData =
-        await originalImage.toByteData(format: ui.ImageByteFormat.png);
-    final Uint8List? pngBytes = byteData?.buffer.asUint8List();
-
-    if (pngBytes == null) {
-      return null;
-    }
-
-    // Create new image with correct orientation
-    final ui.PictureRecorder recorder = ui.PictureRecorder();
-    final ui.Canvas canvas = ui.Canvas(recorder);
-
-    final double height = originalImage.height.toDouble();
-
-    // Apply transformation (flip vertically)
-    canvas.translate(0, height);
-    canvas.scale(1, -1);
-
-    final paint = ui.Paint();
-    canvas.drawImage(originalImage, ui.Offset.zero, paint);
-
-    final ui.Image flippedImage = await recorder
-        .endRecording()
-        .toImage(originalImage.width, originalImage.height);
-
-    // Convert flipped image to ByteData
-    final ByteData? flippedByteData =
-        await flippedImage.toByteData(format: ui.ImageByteFormat.png);
-    final Uint8List? flippedPngBytes = flippedByteData?.buffer.asUint8List();
-
-    if (flippedPngBytes == null) {
-      return null;
-    }
-
-    // Save to file
+    final ui.Image image = await boundary.toImage(pixelRatio: 3.0);
     final directory = (await getApplicationDocumentsDirectory()).path;
-    final File imgFile = File('$directory/${timestamp()}.png');
-    await imgFile.writeAsBytes(flippedPngBytes);
 
-    await Future.delayed(const Duration(
-        milliseconds: 500)); // waiting for image fully writeAsBytes
+    final ByteData? byteData =
+        await image.toByteData(format: ui.ImageByteFormat.png);
+    final Uint8List? pngBytes = byteData?.buffer.asUint8List();
+    final File imgFile = File('$directory/${timestamp()}.png');
+    await imgFile.writeAsBytes(pngBytes!);
+
     await GallerySaver.saveImage(imgFile.path,
         toDcim: true, albumName: 'AirWareness');
     setState(() {
@@ -218,147 +185,149 @@ class _PhotoEditorState extends State<PhotoEditor> {
 
     return Scaffold(
         backgroundColor: Colors.black,
-        body: Stack(children: <Widget>[
-          // Photo Editing area
-          GestureDetector(
-              behavior: HitTestBehavior.translucent,
-              onTap: () {
-                _animateHidePanel();
-              },
-              onScaleStart: (details) {
-                _initPos = details.focalPoint;
-                if (_activeItem == null) return;
-
-                _currentPos = _activeItem!.position;
-                _currentScale = _activeItem!.scale;
-                _currentRotation = _activeItem!.rotation;
-                setState(() {
-                  _hideMenu = true;
-                  _hideDelete = false;
-                });
-              },
-              onScaleUpdate: (details) {
-                final delta = details.focalPoint - _initPos;
-                if (_activeItem == null) {
-                  if (delta.dy < -5) {
-                    _animateShowPanel();
-                  }
-                  return;
-                }
-                final left = (delta.dx / editingArea.width) + _currentPos.dx;
-                final top = (delta.dy / editingArea.height) + _currentPos.dy;
-
-                setState(() {
-                  _activeItem!.position = Offset(left, top);
-                  _activeItem!.rotation = details.rotation + _currentRotation;
-                  _activeItem!.scale = details.scale * _currentScale;
-                  _hideMenu = true;
-
-                  final dx = details.focalPoint.dx;
-                  final dy = details.focalPoint.dy;
-
-                  // If picture size is big, the delete button is shown
-                  // overlaying on top of picture, else the button is on the
-                  // black bar.
-                  if (screenSize.height - 50 <
-                      screenSize.height / 2 + editingArea.height / 2) {
-                    // It would be more natural to delete the widget, if the
-                    // widget is dragged to the center, touching the delete
-                    // button.
-                    if (dx >= screenSize.width * 0.25 &&
-                        dx <= screenSize.width * 0.75 &&
-                        dy > screenSize.height - 50) {
-                      _nearDelete = true;
-                      return;
+        body: SafeArea(
+          child: Stack(children: <Widget>[
+            // Photo Editing area
+            GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                onTap: () {
+                  _animateHidePanel();
+                },
+                onScaleStart: (details) {
+                  _initPos = details.focalPoint;
+                  if (_activeItem == null) return;
+          
+                  _currentPos = _activeItem!.position;
+                  _currentScale = _activeItem!.scale;
+                  _currentRotation = _activeItem!.rotation;
+                  setState(() {
+                    _hideMenu = true;
+                    _hideDelete = false;
+                  });
+                },
+                onScaleUpdate: (details) {
+                  final delta = details.focalPoint - _initPos;
+                  if (_activeItem == null) {
+                    if (delta.dy < -5) {
+                      _animateShowPanel();
                     }
-                  } else {
-                    // The delete button is on the black bar, just drag to the
-                    // black bar, then that widget is deleted.
-                    if (dy > screenSize.height / 2 + editingArea.height / 2) {
-                      _nearDelete = true;
-                      return;
-                    }
+                    return;
                   }
-                  _nearDelete = false;
-                });
-              },
-              child: Align(
-                alignment: (() {
-                  if (photoAspectRatio != null) {
-                    if ((photoAspectRatio - 9 / 16).abs() < 0.1) {
-                      return AlignmentDirectional.topCenter;
+                  final left = (delta.dx / editingArea.width) + _currentPos.dx;
+                  final top = (delta.dy / editingArea.height) + _currentPos.dy;
+          
+                  setState(() {
+                    _activeItem!.position = Offset(left, top);
+                    _activeItem!.rotation = details.rotation + _currentRotation;
+                    _activeItem!.scale = details.scale * _currentScale;
+                    _hideMenu = true;
+          
+                    final dx = details.focalPoint.dx;
+                    final dy = details.focalPoint.dy;
+          
+                    // If picture size is big, the delete button is shown
+                    // overlaying on top of picture, else the button is on the
+                    // black bar.
+                    if (screenSize.height - 50 <
+                        screenSize.height / 2 + editingArea.height / 2) {
+                      // It would be more natural to delete the widget, if the
+                      // widget is dragged to the center, touching the delete
+                      // button.
+                      if (dx >= screenSize.width * 0.25 &&
+                          dx <= screenSize.width * 0.75 &&
+                          dy > screenSize.height - 50) {
+                        _nearDelete = true;
+                        return;
+                      }
+                    } else {
+                      // The delete button is on the black bar, just drag to the
+                      // black bar, then that widget is deleted.
+                      if (dy > screenSize.height / 2 + editingArea.height / 2) {
+                        _nearDelete = true;
+                        return;
+                      }
                     }
-                  }
-
-                  return AlignmentDirectional.center;
-                }()),
-                child: SizedBox(
-                    width: editingArea.width,
-                    height: editingArea.height,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(16.0),
-                      child: RepaintBoundary(
-                          key: _globalKey,
-                          child: Stack(
-                              clipBehavior: Clip.antiAlias,
-                              children: <Widget>[
-                                FutureBuilder<Color>(
-                                    future: _dominantColorFuture,
-                                    builder: (BuildContext context,
-                                        AsyncSnapshot<Color> snapshot) {
-                                      if (snapshot.hasData) {
-                                        return Container(color: snapshot.data);
-                                      } else {
-                                        return Container(color: Colors.black);
+                    _nearDelete = false;
+                  });
+                },
+                child: Align(
+                  alignment: (() {
+                    if (photoAspectRatio != null) {
+                      if ((photoAspectRatio - 9 / 16).abs() < 0.1) {
+                        return AlignmentDirectional.topCenter;
+                      }
+                    }
+          
+                    return AlignmentDirectional.center;
+                  }()),
+                  child: SizedBox(
+                      width: editingArea.width,
+                      height: editingArea.height,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(16.0),
+                        child: RepaintBoundary(
+                            key: _globalKey,
+                            child: Stack(
+                                clipBehavior: Clip.antiAlias,
+                                children: <Widget>[
+                                  FutureBuilder<Color>(
+                                      future: _dominantColorFuture,
+                                      builder: (BuildContext context,
+                                          AsyncSnapshot<Color> snapshot) {
+                                        if (snapshot.hasData) {
+                                          return Container(color: snapshot.data);
+                                        } else {
+                                          return Container(color: Colors.black);
+                                        }
+                                      }),
+                                  Transform.scale(
+                                      // TODO: Implement Zoom
+                                      scale: 1,
+                                      child: Center(
+                                          child: Image.file(widget.image))),
+                                  NotificationListener<ScrollNotification>(
+                                    onNotification: (scrollNotification) {
+                                      if (scrollNotification
+                                          is ScrollStartNotification) {
+                                        setState(() {
+                                          _hideMenu = true;
+                                        });
+                                      } else if (scrollNotification
+                                          is ScrollEndNotification) {
+                                        setState(() {
+                                          _hideMenu = false;
+                                        });
                                       }
-                                    }),
-                                Transform.scale(
-                                    // TODO: Implement Zoom
-                                    scale: 1,
-                                    child: Center(
-                                        child: Image.file(widget.image))),
-                                NotificationListener<ScrollNotification>(
-                                  onNotification: (scrollNotification) {
-                                    if (scrollNotification
-                                        is ScrollStartNotification) {
-                                      setState(() {
-                                        _hideMenu = true;
-                                      });
-                                    } else if (scrollNotification
-                                        is ScrollEndNotification) {
-                                      setState(() {
-                                        _hideMenu = false;
-                                      });
-                                    }
-                                    return true;
-                                  },
-                                  child: PageView.builder(
-                                    key: Key('$aqi$_placeName'),
-                                    controller: _pageController,
-                                    scrollDirection: Axis.horizontal,
-                                    physics: _isTemplateChangeAllowed == true
-                                        ? const AlwaysScrollableScrollPhysics()
-                                        : const NeverScrollableScrollPhysics(),
-                                    itemBuilder:
-                                        (BuildContext context, int index) {
-                                      return Stack(
-                                        children: templates == null
-                                            ? []
-                                            : templates[
-                                                    index % templates.length]
-                                                .map(_buildItemWidget)
-                                                .toList(),
-                                      );
+                                      return true;
                                     },
-                                  ),
-                                )
-                              ])),
-                    )),
-              )),
-          _hideMenu ? Container() : _getTopMenu(),
-          _hideDelete ? Container() : _getDeleteButton(),
-          _getAddWidgetMenu(aqi, placeName)
-        ]));
+                                    child: PageView.builder(
+                                      key: Key('$aqi$_placeName'),
+                                      controller: _pageController,
+                                      scrollDirection: Axis.horizontal,
+                                      physics: _isTemplateChangeAllowed == true
+                                          ? const AlwaysScrollableScrollPhysics()
+                                          : const NeverScrollableScrollPhysics(),
+                                      itemBuilder:
+                                          (BuildContext context, int index) {
+                                        return Stack(
+                                          children: templates == null
+                                              ? []
+                                              : templates[
+                                                      index % templates.length]
+                                                  .map(_buildItemWidget)
+                                                  .toList(),
+                                        );
+                                      },
+                                    ),
+                                  )
+                                ])),
+                      )),
+                )),
+            _hideMenu ? Container() : _getTopMenu(),
+            _hideDelete ? Container() : _getDeleteButton(),
+            _getAddWidgetMenu(aqi, placeName)
+          ]),
+        ));
   }
 
   void _animateShowPanel() {
