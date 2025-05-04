@@ -273,79 +273,79 @@ class _CameraState extends State<Camera> with WidgetsBindingObserver {
 
       return Scaffold(
           backgroundColor: Colors.black,
-          body: Stack(children: <Widget>[
-            Align(
-              alignment:
-                  _currentAspectRatio == SupportedAspectRatio.nineBySixteen
-                      ? Alignment.bottomCenter
-                      : Alignment.center,
-              child: Transform.scale(
-                scale: 1.0,
-                child: AspectRatio(
-                  aspectRatio: _currentAspectRatio.value,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(16.0),
-                    child: OverflowBox(
-                      alignment: Alignment.center,
-                      child: FittedBox(
-                        fit: BoxFit.fitWidth,
-                        child: SizedBox(
-                            width: size.width,
-                            height: size.width /
-                                (1 / cameraController.value.aspectRatio),
-                            child: cameraController.buildPreview()),
+          body: SafeArea(
+            child: Stack(children: <Widget>[
+              Align(
+                alignment: Alignment.center,
+                child: Transform.scale(
+                  scale: 1.0,
+                  child: AspectRatio(
+                    aspectRatio: _currentAspectRatio.value,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(16.0),
+                      child: OverflowBox(
+                        alignment: Alignment.center,
+                        child: FittedBox(
+                          fit: BoxFit.fitWidth,
+                          child: SizedBox(
+                              width: size.width,
+                              height: size.width /
+                                  (1 / cameraController.value.aspectRatio),
+                              child: cameraController.buildPreview()),
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
-            Align(
-                alignment: AlignmentDirectional.topCenter,
-                child: Container(
-                    padding: const EdgeInsets.fromLTRB(24.0, 8.0, 24.0, 8.0),
-                    color: const Color.fromRGBO(0, 0, 0, 0.2),
-                    child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: <Widget>[
-                          InkWell(
-                            onTap: () {
-                              if (!mounted) return;
-                              Navigator.pop(context);
-                            },
-                            child: const Icon(Icons.close, size: 40),
-                          ),
-                          getAspectRatioButton(),
-                          getFlashButton(),
-                        ]))),
-            Align(
-                alignment: AlignmentDirectional.bottomCenter,
-                child: Container(
-                    padding: const EdgeInsets.fromLTRB(0.0, 24.0, 0.0, 24.0),
-                    child: Material(
-                        color: Colors.transparent,
-                        child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: <Widget>[
-                              getImagePickerButton(),
-                              getCaptureButton(),
-                              getFlipCameraButton()
-                            ])))),
-            GestureDetector(
-                onScaleStart: (ScaleStartDetails scaleStartDetails) {
-              _initZoomLevel = _currentZoomLevel;
-            }, onScaleUpdate: (ScaleUpdateDetails scaleUpdateDetails) async {
-              // don't update the UI if the scale didn't change
-              if (scaleUpdateDetails.scale == 1.0) {
-                return;
-              }
-              setState(() {
-                _currentZoomLevel = (_initZoomLevel * scaleUpdateDetails.scale)
-                    .clamp(_minAvailableZoom, _maxAvailableZoom);
-              });
-              await cameraController.setZoomLevel(_currentZoomLevel);
-            }),
-          ]));
+              Align(
+                  alignment: AlignmentDirectional.topCenter,
+                  child: Container(
+                      padding: const EdgeInsets.fromLTRB(24.0, 8.0, 24.0, 8.0),
+                      color: const Color.fromRGBO(0, 0, 0, 0.2),
+                      child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: <Widget>[
+                            InkWell(
+                              onTap: () {
+                                if (!mounted) return;
+                                Navigator.pop(context);
+                              },
+                              child: const Icon(Icons.close, size: 40),
+                            ),
+                            getAspectRatioButton(),
+                            getFlashButton(),
+                          ]))),
+              Align(
+                  alignment: AlignmentDirectional.bottomCenter,
+                  child: Container(
+                      padding: const EdgeInsets.fromLTRB(0.0, 24.0, 0.0, 24.0),
+                      child: Material(
+                          color: Colors.transparent,
+                          child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: <Widget>[
+                                getImagePickerButton(),
+                                getCaptureButton(),
+                                getFlipCameraButton()
+                              ])))),
+              GestureDetector(
+                  onScaleStart: (ScaleStartDetails scaleStartDetails) {
+                _initZoomLevel = _currentZoomLevel;
+              }, onScaleUpdate: (ScaleUpdateDetails scaleUpdateDetails) async {
+                // don't update the UI if the scale didn't change
+                if (scaleUpdateDetails.scale == 1.0) {
+                  return;
+                }
+                setState(() {
+                  _currentZoomLevel =
+                      (_initZoomLevel * scaleUpdateDetails.scale)
+                          .clamp(_minAvailableZoom, _maxAvailableZoom);
+                });
+                await cameraController.setZoomLevel(_currentZoomLevel);
+              }),
+            ]),
+          ));
     }
   }
 

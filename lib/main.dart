@@ -143,12 +143,14 @@ class _MainScreen extends State<MainScreen> {
           ],
         ),
       ),
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: [
-          const Memory(),
-          Forecast(onRefresh: _forecastUpdate, data: _forecastData)
-        ],
+      body: SafeArea(
+        child: IndexedStack(
+          index: _selectedIndex,
+          children: [
+            const Memory(),
+            Forecast(onRefresh: _forecastUpdate, data: _forecastData)
+          ],
+        ),
       ),
       bottomNavigationBar: Container(
         color: style.greyUI,
