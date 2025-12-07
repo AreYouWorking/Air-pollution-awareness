@@ -59,7 +59,8 @@ class _CameraState extends State<Camera> with WidgetsBindingObserver {
     // Instantiate the camera controller
     final CameraController cameraController = CameraController(
         cameraDescription, ResolutionPreset.max,
-        imageFormatGroup: ImageFormatGroup.jpeg);
+        imageFormatGroup: ImageFormatGroup.jpeg,
+        enableAudio: false);
 
     // Replace with the new controller
     if (mounted) {

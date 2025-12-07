@@ -29,11 +29,23 @@ class Suggestlocation {
 
   factory Suggestlocation.fromJson(Map<String, dynamic> json) {
     return Suggestlocation(
-      name: json['name'] ?? json['state'] as String,
-      city: json['city'] ?? json['state'] as String,
-      lat: json['lat'] as double,
-      lon: json['lon'] as double,
-      distance: json['distance'] as double,
+      // Try 'name', if null try 'formatted', if null try 'address_line1', etc.
+      name: json['name'] as String? ?? 
+            json['formatted'] as String? ?? 
+            json['address_line1'] as String? ?? 
+            json['state'] as String?,
+            
+      // Try 'city', if null try 'state', if null try 'county'
+      city: json['city'] as String? ?? 
+            json['state'] as String? ?? 
+            json['county'] as String?,
+
+      // Use 'num' to safely handle both int and double values from JSON
+      lat: (json['lat'] as num).toDouble(),
+      lon: (json['lon'] as num).toDouble(),
+      
+      // Handle potential null distance
+      distance: (json['distance'] as num?)?.toDouble(),
     );
   }
 }
