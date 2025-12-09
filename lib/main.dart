@@ -8,6 +8,8 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:geolocator/geolocator.dart';
 
 import '/location/selectlocation.dart';
 import 'location/userposition.dart';
@@ -58,7 +60,7 @@ class _MainScreen extends State<MainScreen> {
     });
 
     var newForecastData = await ForecastData.init(
-        Userposition.latitudeChosen, Userposition.longitudeChosen);
+        UserPosition.latitudeChosen, UserPosition.longitudeChosen);
     setState(() {
       _forecastData = newForecastData;
     });
@@ -84,6 +86,49 @@ class _MainScreen extends State<MainScreen> {
   }
 
   @override
+  void dispose() {
+    _everyHour.cancel();
+    super.dispose();
+  }
+
+  Future<void> handleLocationSearchBtnPress() async {
+    final LocationPermission permission = await getLocationPermission();
+    if (permission == LocationPermission.denied ||
+        permission == LocationPermission.deniedForever) {
+      Fluttertoast.showToast(
+          msg:
+              "Location Permission is required to use this app. Please enable it in device settings.",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 5,
+          backgroundColor: Colors.black,
+          textColor: Colors.white,
+          fontSize: 16.0);
+      return;
+    }
+
+    if (!mounted) {
+      return;
+    }
+
+    final chosenLocation = await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const Selectlocation(predefinedLocation: []),
+        ));
+    print(chosenLocation);
+    if (chosenLocation != null) {
+      setState(() {
+        print("data");
+        UserPosition.setChosenLocation(chosenLocation.lat.toString(),
+            chosenLocation.lon.toString(), chosenLocation.name);
+        print(UserPosition.displayPlaceChosen);
+        _forecastUpdate();
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -96,7 +141,9 @@ class _MainScreen extends State<MainScreen> {
           children: [
             const Text(
               'AirWareness',
-              textScaleFactor: 1.2,
+              style: TextStyle(
+                fontSize: 28,
+              ),
             ),
 
             //make it clikable to set location
@@ -104,26 +151,7 @@ class _MainScreen extends State<MainScreen> {
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: GestureDetector(
-                    onTap: () async {
-                      final chosenLocation = await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                const Selectlocation(predefinedLocation: []),
-                          ));
-                      print(chosenLocation);
-                      if (chosenLocation != null) {
-                        setState(() {
-                          print("data");
-                          Userposition.setChosenLocation(
-                              chosenLocation.lat.toString(),
-                              chosenLocation.lon.toString(),
-                              chosenLocation.name);
-                          print(Userposition.display_place_Chosen);
-                          _forecastUpdate();
-                        });
-                      }
-                    },
+                    onTap: handleLocationSearchBtnPress,
                     child: Row(
                       mainAxisSize: MainAxisSize.max,
                       mainAxisAlignment: MainAxisAlignment.end,
@@ -131,8 +159,10 @@ class _MainScreen extends State<MainScreen> {
                         const Icon(Icons.near_me_outlined),
                         Flexible(
                             child: Text(
-                          Userposition.display_place_Chosen,
-                          textScaleFactor: 0.7,
+                          UserPosition.displayPlaceChosen,
+                          style: const TextStyle(
+                            fontSize: 14,
+                          ),
                           overflow: TextOverflow.ellipsis,
                           maxLines: 1,
                         ))
@@ -143,12 +173,14 @@ class _MainScreen extends State<MainScreen> {
           ],
         ),
       ),
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: [
-          const Memory(),
-          Forecast(onRefresh: _forecastUpdate, data: _forecastData)
-        ],
+      body: SafeArea(
+        child: IndexedStack(
+          index: _selectedIndex,
+          children: [
+            const Memory(),
+            Forecast(onRefresh: _forecastUpdate, data: _forecastData)
+          ],
+        ),
       ),
       bottomNavigationBar: Container(
         color: style.greyUI,

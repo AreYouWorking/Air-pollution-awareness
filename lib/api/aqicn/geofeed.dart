@@ -153,7 +153,7 @@ class Forecast {
 
 @JsonSerializable()
 class Daily {
-  final List<DataPoint> o3;
+  final List<DataPoint>? o3;
   final List<DataPoint> pm10;
   final List<DataPoint> pm25;
   final List<DataPoint>? uvi;

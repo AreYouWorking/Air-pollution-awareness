@@ -11,22 +11,20 @@ Future<Position> fetchCurrentLocation() async {
     return Future.error('Location services are disabled.');
   }
 
-  LocationPermission permission = await Geolocator.checkPermission();
-  if (permission == LocationPermission.denied) {
-    permission = await Geolocator.requestPermission();
-    if (permission == LocationPermission.denied) {
-      return Future.error('Location permissions are denied');
-    }
-  }
-  if (permission == LocationPermission.deniedForever) {
-    return Future.error(
-        'Location permissions are permanently denied, we cannot request location');
-  }
+  await getLocationPermission();
 
   // May return the cache position as expected.
   // Wait for a little while before seeing location change.
   // https://github.com/Baseflow/flutter-geolocator/issues/884
   return await Geolocator.getCurrentPosition();
+}
+
+Future<LocationPermission> getLocationPermission() async {
+  LocationPermission permission = await Geolocator.checkPermission();
+  if (permission == LocationPermission.denied) {
+    return await Geolocator.requestPermission();
+  }
+  return permission;
 }
 
 Future<String> fetchPlaceName(String lat, String lon) async {
@@ -42,11 +40,11 @@ Future<void> fetchAndSetUserLocation() async {
   Position pos = await fetchCurrentLocation();
   // if new position is not the same as old position,
   // then fetch place name and set new current position
-  if (pos.latitude.toString() != Userposition.latitudeGPS &&
-      pos.longitude.toString() != Userposition.longitudeGPS) {
+  if (pos.latitude.toString() != UserPosition.latitudeGPS &&
+      pos.longitude.toString() != UserPosition.longitudeGPS) {
     String placeName =
         await fetchPlaceName(pos.latitude.toString(), pos.longitude.toString());
-    Userposition.setCurrentLocation(
+    UserPosition.setCurrentLocation(
         pos.latitude.toString(), pos.longitude.toString(), placeName);
   }
 }

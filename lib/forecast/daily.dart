@@ -29,7 +29,7 @@ class _DailyWidgetState extends State<DailyWidget> {
     _dailyData = widget.data.getDailyDatas();
     if (_dailyData == null) {
       return Center(
-          child: LoadingAnimationWidget.prograssiveDots(
+          child: LoadingAnimationWidget.progressiveDots(
               color: Colors.white, size: 50));
     }
 
@@ -68,7 +68,9 @@ class _DailyWidgetState extends State<DailyWidget> {
                   children: [
                     Text(
                       data.emoji,
-                      textScaleFactor: 1.4,
+                      style: const TextStyle(
+                        fontSize: 20,
+                      ),
                     ),
                     const SizedBox(
                       height: 5,

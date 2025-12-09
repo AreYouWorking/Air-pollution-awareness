@@ -1,7 +1,11 @@
 import 'dart:io';
 
-import 'package:app/Camera.dart';
+import 'package:app/camera.dart';
+import 'package:app/utils.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:photo_gallery/photo_gallery.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:app/style.dart' as style;
@@ -45,19 +49,55 @@ class _MemoryState extends State<Memory> {
   Future<bool> _promptPermissionSetting() async {
     if (Platform.isIOS) {
       // Request storage and photo permissions on iOS
-      var storageStatus = await Permission.storage.request();
-      var photoStatus = await Permission.photos.request();
-      if (storageStatus.isGranted && photoStatus.isGranted) {
-        return true;
-      }
+      Map<Permission, PermissionStatus> statuses = await [
+        Permission.storage,
+        Permission.photos,
+      ].request();
+
+      return statuses.entries.every((status) => status.value.isGranted);
     } else if (Platform.isAndroid) {
-      // Request storage permission on Android
-      var storageStatus = await Permission.storage.request();
-      if (storageStatus.isGranted) {
-        return true;
+      final DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+      final AndroidDeviceInfo info = await deviceInfo.androidInfo;
+
+      final PermissionStatus status;
+      if (info.version.sdkInt >= 33) {
+        status = await Permission.photos.request();
+      } else {
+        status = await Permission.storage.request();
       }
+
+      return status.isGranted;
     }
+
     return false;
+  }
+
+  Future<void> _openCamera() async {
+    final LocationPermission permission = await getLocationPermission();
+
+    if (permission == LocationPermission.denied ||
+        permission == LocationPermission.deniedForever) {
+      Fluttertoast.showToast(
+          msg: "Location Permission is required to use this app. Please enable it in device settings.",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 5,
+          backgroundColor: Colors.black,
+          textColor: Colors.white,
+          fontSize: 16.0);
+      return;
+    }
+
+    if (!mounted) {
+      return;
+    }
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const Camera()),
+    );
+    if (mounted) {
+      initAsync();
+    }
   }
 
   @override
@@ -69,14 +109,8 @@ class _MemoryState extends State<Memory> {
         children: [
           InkWell(
               borderRadius: BorderRadius.circular(20),
-              onTap: () async {
-                if (!mounted) return;
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const Camera()),
-                ).then((_) {
-                  if (mounted) initAsync();
-                });
+              onTap: () {
+                _openCamera();
               },
               child: Container(
                 width: double.infinity,
@@ -93,7 +127,9 @@ class _MemoryState extends State<Memory> {
             padding: EdgeInsets.only(top: 20.0),
             child: Text(
               '- Memory -',
-              textScaleFactor: 1.3,
+              style: TextStyle(
+                fontSize: 20,
+              ),
             ),
           ),
           memoryWidget

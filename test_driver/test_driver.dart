@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:path/path.dart';
 
 import 'package:integration_test/integration_test_driver.dart';
 

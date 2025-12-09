@@ -17,8 +17,8 @@ Map<String, dynamic> _$ResponseToJson(Response instance) => <String, dynamic>{
     };
 
 Data _$DataFromJson(Map<String, dynamic> json) => Data(
-      json['aqi'] as int,
-      json['idx'] as int,
+      (json['aqi'] as num).toInt(),
+      (json['idx'] as num).toInt(),
       (json['attributions'] as List<dynamic>)
           .map((e) => Attr.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -66,7 +66,7 @@ Map<String, dynamic> _$AttrToJson(Attr instance) => <String, dynamic>{
     };
 
 City _$CityFromJson(Map<String, dynamic> json) => City(
-      (json['geo'] as List<dynamic>).map((e) => toDouble(e)).toList(),
+      (json['geo'] as List<dynamic>).map((e) => (e as num).toDouble()).toList(),
       json['name'] as String,
       json['url'] as String?,
       json['location'] as String?,
@@ -140,7 +140,7 @@ Map<String, dynamic> _$IaqiValueToJson(IaqiValue instance) => <String, dynamic>{
 Time _$TimeFromJson(Map<String, dynamic> json) => Time(
       json['s'] as String,
       json['tz'] as String,
-      json['v'] as int,
+      (json['v'] as num).toInt(),
       json['iso'] as String?,
     );
 
@@ -160,8 +160,8 @@ Map<String, dynamic> _$ForecastToJson(Forecast instance) => <String, dynamic>{
     };
 
 Daily _$DailyFromJson(Map<String, dynamic> json) => Daily(
-      (json['o3'] as List<dynamic>)
-          .map((e) => DataPoint.fromJson(e as Map<String, dynamic>))
+      (json['o3'] as List<dynamic>?)
+          ?.map((e) => DataPoint.fromJson(e as Map<String, dynamic>))
           .toList(),
       (json['pm10'] as List<dynamic>)
           .map((e) => DataPoint.fromJson(e as Map<String, dynamic>))
@@ -182,10 +182,10 @@ Map<String, dynamic> _$DailyToJson(Daily instance) => <String, dynamic>{
     };
 
 DataPoint _$DataPointFromJson(Map<String, dynamic> json) => DataPoint(
-      json['avg'] as int,
+      (json['avg'] as num).toInt(),
       json['day'] as String,
-      json['max'] as int,
-      json['min'] as int,
+      (json['max'] as num).toInt(),
+      (json['min'] as num).toInt(),
     );
 
 Map<String, dynamic> _$DataPointToJson(DataPoint instance) => <String, dynamic>{

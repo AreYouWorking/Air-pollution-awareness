@@ -5,13 +5,14 @@ import 'package:photo_gallery/photo_gallery.dart';
 class AlbumPage extends StatefulWidget {
   final Album album;
 
-  AlbumPage({super.key, required this.album});
+  const AlbumPage({super.key,
+    required this.album
+  });
 
   @override
   State<StatefulWidget> createState() => AlbumPageState();
 }
 
-// TODO core
 class AlbumPageState extends State<AlbumPage> {
   List<Medium>? _media;
 
@@ -23,6 +24,7 @@ class AlbumPageState extends State<AlbumPage> {
 
   void initAsync() async {
     MediaPage? mediaPage = await widget.album.listMedia();
+    print(mediaPage.items);
     setState(() {
       _media = mediaPage.items;
     });
@@ -64,7 +66,9 @@ class AlbumPageState extends State<AlbumPage> {
 class ViewerPage extends StatelessWidget {
   final Medium medium;
 
-  const ViewerPage(this.medium, {super.key});
+  const ViewerPage(
+      this.medium,
+      {super.key});
 
   @override
   Widget build(BuildContext context) {
